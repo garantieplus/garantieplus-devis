@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Calque_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 2056 2056">
+  <defs>
+    <style>
+      .cls-1{letter-spacing:-.04em}
+      .cls-1,.cls-2{font-family:Kanit-Regular,Kanit}
+      .cls-3{font-family:Kanit-SemiBold,Kanit;font-weight:600}
+      .cls-4{font-size:221.34px}
+      .cls-5{font-family:Kanit-Medium,Kanit;font-weight:500}
+      .cls-6{fill:url(#degrade_logo)}
+    </style>
+    <linearGradient id="degrade_logo" x1="717.01" y1="821.07" x2="1338.99" y2="821.07" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#381893"/>
+      <stop offset=".99" stop-color="#47b4e1"/>
+    </linearGradient>
+  </defs>
+  <text class="cls-4" transform="translate(229.18 1462.56)">
+    <tspan class="cls-2" x="0" y="0">GA</tspan><tspan class="cls-1" x="296.82" y="0">R</tspan><tspan class="cls-2" x="421.88" y="0">ANTIE</tspan><tspan class="cls-5" x="1023.92" y="0"> </tspan><tspan class="cls-3" x="1072.62" y="0">PLUS</tspan>
+  </text>
+  <path class="cls-6" d="M1338.99,698.42v-186.88h-93.44s-528.53,0-528.53,0v309.53c0,171,138.53,309.53,309.53,309.53,161.19,0,293.41-122.99,308.13-280.33.93-9.58,1.4-19.39,1.4-29.2v-64.24h-261.35v-58.4h-93.44v58.4h-62.78v93.44h62.78v58.4h93.44v-58.4h165.92c-14.25,105.36-104.89,186.88-214.1,186.88-119.14,0-216.09-96.95-216.09-216.09v-216.09h435.09v93.44h93.44Z"/>
+</svg>

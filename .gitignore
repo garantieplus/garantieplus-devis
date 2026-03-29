@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Fichiers sources CG (binaires lourds — déjà copiés dans public/cg/)
+Carnet de Garantie*.pdf
+Carnet de Garantie*.docx
+
+# Claude Code
+.claude/
