@@ -5,7 +5,7 @@ import { genererPDFDevis } from '@/lib/pdf';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const formatPrix = (n: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
 const getGammeColor = (gamme: string) => {
   switch (gamme) {
@@ -54,7 +54,7 @@ const emailGarageHTML = (devis: Devis, garanties: GarantieProposee[]) => `
         <tr>
           <td>
             <p style="margin:0;color:white;font-size:26px;font-weight:700;letter-spacing:1px;line-height:1;">GARANTIE PLUS</p>
-            <p style="margin:6px 0 0;color:rgba(255,255,255,0.78);font-size:12px;">Courtier en garanties mécaniques automobiles</p>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.78);font-size:12px;">Courtier en Garanties Panne Mecanique Automobile</p>
           </td>
           <td style="text-align:right;vertical-align:top;">
             <p style="margin:0;color:rgba(255,255,255,0.6);font-size:11px;">ORIAS n°25004236</p>
@@ -76,7 +76,7 @@ const emailGarageHTML = (devis: Devis, garanties: GarantieProposee[]) => `
 
       <p style="margin:0 0 6px;color:#1A1A2E;font-size:16px;font-weight:600;">Bonjour ${devis.nom_contact},</p>
       <p style="margin:0 0 28px;color:#6B7280;font-size:14px;line-height:1.6;">
-        Suite à votre demande, voici les garanties mécaniques disponibles pour votre véhicule.
+        Suite a votre demande, voici les Garanties Panne Mecanique disponibles pour votre vehicule.
         Le <strong>devis complet est joint en PDF</strong> à cet email.
         Tous les tarifs sont en <strong>TTC, taxe d'assurance incluse</strong>.
       </p>
@@ -222,7 +222,7 @@ const emailInterneHTML = (devis: Devis, garanties: GarantieProposee[]) => `
     <div style="margin-top:20px;">
       <a href="${process.env.NEXT_PUBLIC_BASE_URL}/admin/devis/${devis.id}"
          style="display:inline-block;background:#381893;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
-        Voir le devis dans le back-office →
+        Voir le devis dans le back-office
       </a>
     </div>
   </div>
@@ -249,10 +249,20 @@ export async function envoyerEmailGarage({
     }
 
     const fromAddr = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+    // En mode test (onboarding@resend.dev), Resend n'autorise l'envoi que vers
+    // l'email du compte Resend. On redirige donc vers EMAIL_ADMIN.
+    // En production (domaine vérifié), on envoie directement au garage.
+    const isTestMode = fromAddr === 'onboarding@resend.dev';
+    const toAddr = isTestMode
+      ? (process.env.EMAIL_ADMIN || 'contact@garantieplus.fr')
+      : devis.email;
+
     const payload: Parameters<typeof resend.emails.send>[0] = {
       from: `Garantie Plus <${fromAddr}>`,
-      to: devis.email,
-      subject: `Votre devis Garantie Plus — ${devis.marque} ${devis.modele}`,
+      to: toAddr,
+      subject: isTestMode
+        ? `[TEST → ${devis.email}] Devis Garantie Plus — ${devis.marque} ${devis.modele}`
+        : `Votre devis Garantie Plus — ${devis.marque} ${devis.modele}`,
       html: emailGarageHTML(devis, garanties),
     };
 

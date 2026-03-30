@@ -272,7 +272,7 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
 
       <div className="pt-2">
         <Button type="submit" size="lg" className="w-full">
-          Continuer →
+          Continuer
         </Button>
       </div>
     </form>

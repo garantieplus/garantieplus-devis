@@ -12,15 +12,15 @@ interface Props {
 }
 
 const STATUTS: { value: StatutDevis; label: string }[] = [
-  { value: 'nouveau', label: '🔵 Nouveau' },
-  { value: 'a_rappeler', label: '🟡 À rappeler' },
-  { value: 'rappele', label: '🟠 Rappelé' },
-  { value: 'converti', label: '🟢 Converti' },
-  { value: 'perdu', label: '🔴 Perdu' },
+  { value: 'nouveau', label: 'Nouveau' },
+  { value: 'a_rappeler', label: 'A rappeler' },
+  { value: 'rappele', label: 'Rappele' },
+  { value: 'converti', label: 'Converti' },
+  { value: 'perdu', label: 'Perdu' },
 ];
 
 const formatPrix = (n: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
 export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
   const [devis, setDevis] = useState(initialDevis);
@@ -146,7 +146,7 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
 
       {/* Garanties proposées */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="font-semibold text-gray-800 mb-4">📋 Garanties proposées</h3>
+        <h3 className="font-semibold text-gray-800 mb-4">Garanties proposees</h3>
         {garanties.length === 0 ? (
           <p className="text-sm text-gray-400 italic">Aucune garantie éligible</p>
         ) : (
@@ -179,7 +179,7 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
 
       {/* Gestion commerciale */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="font-semibold text-gray-800 mb-4">💼 Gestion commerciale</h3>
+        <h3 className="font-semibold text-gray-800 mb-4">Gestion commerciale</h3>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Statut</label>

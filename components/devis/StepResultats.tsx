@@ -57,7 +57,7 @@ const getGammeStyle = (gamme: string) => {
 };
 
 const formatPrix = (n: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
 const AVANTAGES_PLUS = [
   'Pas de Vetuste',
@@ -110,8 +110,7 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
           const prix = g.prixFinal[duree];
           const isRecommended = g.niveau === 5;
           const plafondAffiche = g.plafondParDuree ? g.plafondParDuree[duree] : g.plafondIntervention;
-          const etoilesPlein = Array(g.niveau).fill('★').join('');
-          const etoilesVide = Array(5 - g.niveau).fill('☆').join('');
+          const niveauLabel = `${g.niveau} / 5`;
 
           return (
             <div
@@ -136,10 +135,9 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
                   Gamme {style.label}
                 </div>
 
-                {/* Etoiles */}
+                {/* Niveau */}
                 <div className="mb-1">
-                  <span className="text-[#F5C842] text-2xl tracking-wide">{etoilesPlein}</span>
-                  <span className="text-white/30 text-2xl tracking-wide">{etoilesVide}</span>
+                  <span className="text-white/80 text-sm font-bold tracking-wide">{niveauLabel}</span>
                 </div>
 
                 <div className="text-white font-bold text-lg leading-tight mb-3">

@@ -84,12 +84,12 @@ export default function Home() {
       <header className="bg-gradient-to-r from-[#381893] to-[#47b4e1] shadow-md">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-white/10 rounded-xl flex items-center justify-center p-2">
-              <Image src="/logo.svg" alt="Garantie Plus" width={52} height={52} className="brightness-0 invert" />
+            <div className="w-24 h-24 bg-white/10 rounded-xl flex items-center justify-center p-2">
+              <Image src="/logo.svg" alt="Garantie Plus" width={88} height={88} className="brightness-0 invert" />
             </div>
             <div>
               <div className="text-white font-bold text-2xl leading-tight tracking-wide">GARANTIE PLUS</div>
-              <div className="text-white/70 text-sm">Courtier en garanties mécaniques</div>
+              <div className="text-white/70 text-sm">Courtier en garanties panne mecanique</div>
             </div>
           </div>
           <div className="hidden sm:block text-right">
@@ -104,7 +104,7 @@ export default function Home() {
         <div className="bg-gradient-to-r from-[#381893] to-[#47b4e1]">
           <div className="max-w-5xl mx-auto px-4 pb-8 pt-2 text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
-              Obtenez votre devis de garantie mécanique
+              Obtenez votre devis de Garantie Panne Mecanique
             </h1>
             <p className="text-white/80 text-sm sm:text-base">
               Réponse immédiate — Résultats par email — Conditions Générales téléchargeables
@@ -128,7 +128,7 @@ export default function Home() {
                         'bg-gray-200 text-gray-500'}
                     `}
                   >
-                    {i < step ? '✓' : i + 1}
+                    {i < step ? 'OK' : i + 1}
                   </div>
                   <span
                     className={`text-xs font-semibold hidden sm:block ${

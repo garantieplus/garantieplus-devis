@@ -192,7 +192,7 @@ export default function DevisTable({ devis, onStatutChange }: Props) {
                     href={`/admin/devis/${d.id}`}
                     className="text-[#381893] hover:underline font-medium text-xs whitespace-nowrap"
                   >
-                    Voir →
+                    Voir
                   </Link>
                 </td>
               </tr>

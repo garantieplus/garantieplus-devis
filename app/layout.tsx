@@ -8,9 +8,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Devis Garantie Mécanique — Garantie Plus',
+  title: 'Devis Garantie Panne Mecanique — Garantie Plus',
   description:
-    'Obtenez instantanément votre devis de garantie mécanique automobile. Garantie Plus, courtier en garanties mécaniques — ORIAS n°25004236.',
+    'Obtenez instantanement votre devis de Garantie Panne Mecanique automobile. Garantie Plus, courtier en garanties panne mecanique — ORIAS n°25004236.',
   robots: 'noindex',
 };
 

@@ -98,10 +98,10 @@ export default function StepGarage({ data, onChange, onNext, onPrev, loading }: 
 
       <div className="flex gap-3 pt-2">
         <Button type="button" variant="outline" size="lg" className="flex-1" onClick={onPrev}>
-          ← Retour
+          Retour
         </Button>
         <Button type="submit" size="lg" className="flex-1" loading={loading}>
-          Voir mes garanties →
+          Voir mes garanties
         </Button>
       </div>
     </form>
