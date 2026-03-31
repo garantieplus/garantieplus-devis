@@ -96,19 +96,19 @@ const buildGarantieCard = (g: GarantieProposee) => {
           <tr style="background:#ffffff;">
             <td style="padding:10px 14px;font-size:13px;color:#6B7280;border-bottom:1px solid #F3F4F6;">6 mois</td>
             <td style="padding:10px 14px;font-size:14px;font-weight:600;color:#374151;text-align:center;border-bottom:1px solid #F3F4F6;">${formatPrix(g.prixFinal['6'])}</td>
-            <td style="padding:10px 14px;font-size:12px;color:#9CA3AF;border-bottom:1px solid #F3F4F6;">${plafond6 === 'VRADE' ? 'Plafond VRADE' : plafond6}</td>
+            <td style="padding:10px 14px;font-size:12px;color:#374151;font-weight:700;border-bottom:1px solid #F3F4F6;"><strong>${plafond6 === 'VRADE' ? "Jusqu'à la VRADE" : `Jusqu'à ${plafond6}`}</strong></td>
           </tr>
           <tr style="background:#F9FAFB;">
             <td style="padding:10px 14px;font-size:13px;color:#374151;font-weight:700;border-bottom:1px solid #F3F4F6;">12 mois <span style="font-size:10px;color:${color};background:rgba(56,24,147,0.08);padding:2px 6px;border-radius:8px;margin-left:4px;">recommandé</span></td>
             <td style="padding:10px 14px;text-align:center;border-bottom:1px solid #F3F4F6;">
               <strong style="font-size:17px;color:${color};">${formatPrix(g.prixFinal['12'])}</strong>
             </td>
-            <td style="padding:10px 14px;font-size:12px;color:#9CA3AF;border-bottom:1px solid #F3F4F6;">${plafond12 === 'VRADE' ? 'Plafond VRADE' : plafond12}</td>
+            <td style="padding:10px 14px;font-size:12px;color:#374151;font-weight:700;border-bottom:1px solid #F3F4F6;"><strong>${plafond12 === 'VRADE' ? "Jusqu'à la VRADE" : `Jusqu'à ${plafond12}`}</strong></td>
           </tr>
           <tr style="background:#ffffff;">
             <td style="padding:10px 14px;font-size:13px;color:#6B7280;">24 mois</td>
             <td style="padding:10px 14px;font-size:14px;font-weight:600;color:#374151;text-align:center;">${formatPrix(g.prixFinal['24'])}</td>
-            <td style="padding:10px 14px;font-size:12px;color:#9CA3AF;">${plafond24 === 'VRADE' ? 'Plafond VRADE' : plafond24}</td>
+            <td style="padding:10px 14px;font-size:12px;color:#374151;font-weight:700;"><strong>${plafond24 === 'VRADE' ? "Jusqu'à la VRADE" : `Jusqu'à ${plafond24}`}</strong></td>
           </tr>
         </tbody>
       </table>
@@ -289,6 +289,16 @@ const emailGarageHTML = (devis: Devis, garanties: GarantieProposee[]) => {
           </tr>`).join('')}
         </table>
       </div>
+    </div>
+
+    <!-- CTA Partenaire -->
+    <div style="text-align:center;margin-bottom:20px;padding:20px;border:1px solid #E5E7EB;border-radius:12px;background:#F9FAFB;">
+      <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#1A1A2E;">Devenez partenaire Garantie Plus</p>
+      <p style="margin:0 0 14px;font-size:12px;color:#6B7280;">Rejoignez notre réseau de garages partenaires et proposez nos garanties à vos clients.</p>
+      <a href="https://devis.garantieplus.fr/inscription"
+         style="display:inline-block;background:linear-gradient(90deg,#381893 0%,#47b4e1 100%);color:white;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.3px;">
+        Devenir Partenaire Garantie Plus &rarr;
+      </a>
     </div>
 
     <!-- Contact -->
