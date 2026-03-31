@@ -84,12 +84,8 @@ export default function Home() {
       <header className="bg-gradient-to-r from-[#381893] to-[#47b4e1] shadow-md">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-24 h-24 bg-white/10 rounded-xl flex items-center justify-center p-2">
-              <Image src="/logo.svg" alt="Garantie Plus" width={88} height={88} className="brightness-0 invert" />
-            </div>
-            <div>
-              <div className="text-white font-bold text-2xl leading-tight tracking-wide">GARANTIE PLUS</div>
-              <div className="text-white/70 text-sm">Courtier en garanties panne mecanique</div>
+            <div className="bg-white rounded-xl px-3 py-2 flex items-center justify-center">
+              <Image src="/logo.png" alt="Garantie Plus" width={160} height={62} className="object-contain" />
             </div>
           </div>
           <div className="hidden sm:block text-right">

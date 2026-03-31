@@ -5,13 +5,6 @@ import Checkbox from '@/components/ui/Checkbox';
 import Button from '@/components/ui/Button';
 import { DevisFormData } from '@/types';
 
-const MARQUES = [
-  'Alfa Romeo', 'Audi', 'Bentley', 'BMW', 'Citroën', 'Dacia', 'DS',
-  'Ferrari', 'Fiat', 'Ford', 'Hyundai', 'Jaguar', 'Kia', 'Lamborghini',
-  'Land Rover', 'Lexus', 'Maserati', 'Mercedes', 'Nissan', 'Opel',
-  'Peugeot', 'Porsche', 'Renault', 'Rolls-Royce', 'Seat', 'Skoda',
-  'Tesla', 'Toyota', 'Volkswagen', 'Volvo',
-];
 
 const MOIS = [
   { value: '1', label: 'Janvier' }, { value: '2', label: 'Février' },
@@ -33,12 +26,6 @@ interface Props {
 
 export default function StepVehicule({ data, onChange, onNext }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [marqueQuery, setMarqueQuery] = useState(data.marque || '');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
-  const filteredMarques = MARQUES.filter(m =>
-    m.toLowerCase().includes(marqueQuery.toLowerCase())
-  );
 
   const formatKm = (v: string) =>
     v.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -94,47 +81,15 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
         <p className="text-gray-500 text-sm">Renseignez les caractéristiques du véhicule à garantir</p>
       </div>
 
-      {/* Marque avec autocomplete */}
-      <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Marque du véhicule</label>
-        <input
-          type="text"
-          value={marqueQuery}
-          placeholder="Ex: Peugeot, BMW, Toyota..."
-          onChange={e => {
-            setMarqueQuery(e.target.value);
-            onChange({ marque: '' });
-            setShowSuggestions(true);
-          }}
-          onFocus={() => setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-          className={`
-            w-full px-4 py-3 rounded-lg border bg-white text-gray-900
-            placeholder:text-gray-400 text-sm transition-colors duration-150
-            focus:outline-none focus:ring-2 focus:ring-[#381893]/30 focus:border-[#381893]
-            ${errors.marque ? 'border-red-400' : 'border-gray-200 hover:border-gray-300'}
-          `}
-        />
-        {showSuggestions && marqueQuery.length > 0 && filteredMarques.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-            {filteredMarques.map(m => (
-              <button
-                key={m}
-                type="button"
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[#F8F6FC] hover:text-[#381893] transition-colors"
-                onMouseDown={() => {
-                  onChange({ marque: m });
-                  setMarqueQuery(m);
-                  setShowSuggestions(false);
-                }}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        )}
-        {errors.marque && <p className="text-xs text-red-500 mt-1">{errors.marque}</p>}
-      </div>
+      {/* Marque — champ texte libre */}
+      <Input
+        id="marque"
+        label="Marque du véhicule"
+        placeholder="Ex: Peugeot, BMW, Toyota..."
+        value={data.marque}
+        onChange={e => onChange({ marque: e.target.value })}
+        error={errors.marque}
+      />
 
       {/* Modèle */}
       <Input
