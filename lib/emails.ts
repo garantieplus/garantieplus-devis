@@ -295,7 +295,7 @@ const emailGarageHTML = (devis: Devis, garanties: GarantieProposee[]) => {
     <div style="text-align:center;margin-bottom:20px;padding:20px;border:1px solid #E5E7EB;border-radius:12px;background:#F9FAFB;">
       <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#1A1A2E;">Devenez partenaire Garantie Plus</p>
       <p style="margin:0 0 14px;font-size:12px;color:#6B7280;">Rejoignez notre réseau de garages partenaires et proposez nos garanties à vos clients.</p>
-      <a href="https://devis.garantieplus.fr/inscription"
+      <a href="${baseUrl}/inscription"
          style="display:inline-block;background:linear-gradient(90deg,#381893 0%,#47b4e1 100%);color:white;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.3px;">
         Devenir Partenaire Garantie Plus &rarr;
       </a>
