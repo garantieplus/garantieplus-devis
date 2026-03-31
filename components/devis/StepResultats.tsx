@@ -196,7 +196,7 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
 
                 {/* Bloc plafond + pieces — mis en avant */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-[#F8F6FC]`}>
+                  <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-white`}>
                     <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1">
                       Plafond / intervention
                     </div>
@@ -208,7 +208,7 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
                           : plafondAffiche}
                     </div>
                   </div>
-                  <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-[#F8F6FC]`}>
+                  <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-white`}>
                     <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1">
                       Pieces couvertes
                     </div>

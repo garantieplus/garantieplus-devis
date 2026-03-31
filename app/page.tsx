@@ -77,40 +77,64 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F6FC]">
+    <div className="min-h-screen bg-white">
       <Toaster position="top-right" />
 
-      {/* Header */}
-      <header className="bg-gradient-to-r from-[#381893] to-[#47b4e1] shadow-md">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-white rounded-xl px-3 py-2 flex items-center justify-center">
-              <Image src="/logo.png" alt="Garantie Plus" width={120} height={47} className="object-contain sm:w-[160px] sm:h-[62px]" />
-            </div>
+      {/* Header blanc */}
+      <header className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Garantie Plus"
+              width={130}
+              height={50}
+              className="object-contain w-[100px] sm:w-[130px]"
+            />
           </div>
-          <div className="hidden sm:block text-right">
-            <p className="text-white/80 text-xs">ORIAS n°25004236</p>
-            <p className="text-white/60 text-xs">130, rue de Courcelles – 75017 Paris</p>
+
+          {/* Boutons */}
+          <div className="flex items-center gap-2">
+            <a
+              href="/plaquette.pdf"
+              download
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:border-[#381893] hover:text-[#381893] transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              </svg>
+              Notre plaquette
+            </a>
+            <a
+              href="https://www.garantieplus.fr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-[#381893] to-[#47b4e1] text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Notre site
+            </a>
           </div>
         </div>
-      </header>
 
-      {/* Hero */}
-      {step < 2 && (
+        {/* Bandeau titre */}
         <div className="bg-gradient-to-r from-[#381893] to-[#47b4e1]">
-          <div className="max-w-5xl mx-auto px-4 pb-8 pt-2 text-center">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
-              Obtenez votre devis de Garantie Panne Mecanique
+          <div className="max-w-5xl mx-auto px-4 py-4 text-center">
+            <h1 className="text-lg sm:text-xl font-extrabold text-white">
+              Obtenez votre devis de Garantie Panne Mécanique
             </h1>
-            <p className="text-white/80 text-sm sm:text-base">
+            <p className="text-white/80 text-xs sm:text-sm mt-0.5">
               Réponse immédiate — Résultats par email — Conditions Générales téléchargeables
             </p>
           </div>
         </div>
-      )}
+      </header>
 
       {/* Barre de progression */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2">
             {STEPS.map((label, i) => (
@@ -121,10 +145,10 @@ export default function Home() {
                       w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all
                       ${i < step ? 'bg-green-500 text-white' :
                         i === step ? 'bg-gradient-to-r from-[#381893] to-[#47b4e1] text-white' :
-                        'bg-gray-200 text-gray-500'}
+                        'bg-gray-100 text-gray-400'}
                     `}
                   >
-                    {i < step ? 'OK' : i + 1}
+                    {i < step ? '✓' : i + 1}
                   </div>
                   <span
                     className={`text-xs font-semibold hidden sm:block ${
@@ -135,7 +159,7 @@ export default function Home() {
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className="flex-1 h-0.5 mx-1 rounded-full overflow-hidden bg-gray-200">
+                  <div className="flex-1 h-0.5 mx-1 rounded-full overflow-hidden bg-gray-100">
                     <div
                       className="h-full bg-gradient-to-r from-[#381893] to-[#47b4e1] transition-all duration-500"
                       style={{ width: i < step ? '100%' : '0%' }}
@@ -175,7 +199,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-8 py-6 border-t border-gray-200 bg-white">
+      <footer className="mt-8 py-6 border-t border-gray-100 bg-white">
         <div className="max-w-5xl mx-auto px-4 text-center">
           <p className="text-xs text-gray-400">
             Garantie Plus SAS — RCS Paris 943 193 037 — ORIAS n°25004236 — 130, rue de Courcelles – 75017 Paris

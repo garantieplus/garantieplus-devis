@@ -1,10 +1,16 @@
 'use client';
 import { useState } from 'react';
-import Input from '@/components/ui/Input';
 import Checkbox from '@/components/ui/Checkbox';
 import Button from '@/components/ui/Button';
 import { DevisFormData } from '@/types';
 
+const MARQUES = [
+  'Abarth', 'Alfa Romeo', 'Audi', 'BMW', 'Citroën', 'Dacia', 'DS', 'Ferrari',
+  'Fiat', 'Ford', 'Honda', 'Hyundai', 'Jaguar', 'Jeep', 'Kia', 'Lamborghini',
+  'Land Rover', 'Lexus', 'Maserati', 'Mazda', 'Mercedes-Benz', 'MINI',
+  'Mitsubishi', 'Nissan', 'Opel', 'Peugeot', 'Porsche', 'Renault', 'SEAT',
+  'Skoda', 'Smart', 'Subaru', 'Suzuki', 'Tesla', 'Toyota', 'Volkswagen', 'Volvo',
+];
 
 const MOIS = [
   { value: '1', label: 'Janvier' }, { value: '2', label: 'Février' },
@@ -26,14 +32,27 @@ interface Props {
 
 export default function StepVehicule({ data, onChange, onNext }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [autreMarque, setAutreMarque] = useState(
+    () => !!data.marque && !MARQUES.includes(data.marque)
+  );
 
   const formatKm = (v: string) =>
     v.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
+  const handleMarqueSelect = (val: string) => {
+    if (val === '__autre__') {
+      setAutreMarque(true);
+      onChange({ marque: '' });
+    } else {
+      setAutreMarque(false);
+      onChange({ marque: val });
+    }
+  };
+
   const handleCheckbox = (field: keyof DevisFormData, value: boolean) => {
     const updates: Partial<DevisFormData> = { [field]: value };
 
-    // Interdépendances valeur neuf
+    // Interdépendances valeur neuf (cascade vers le haut)
     if (field === 'valeurNeuf150k' && value) {
       updates.valeurNeuf100k = true;
       updates.valeurNeuf55k = true;
@@ -41,15 +60,11 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
     if (field === 'valeurNeuf100k' && value) {
       updates.valeurNeuf55k = true;
     }
+    // Cascade vers le bas si décoché
     if (field === 'valeurNeuf100k' && !value) {
       updates.valeurNeuf150k = false;
     }
     if (field === 'valeurNeuf55k' && !value) {
-      updates.valeurNeuf100k = false;
-      updates.valeurNeuf150k = false;
-    }
-    // Hybride désactive valeur neuf > 100k et > 150k (mais pas > 55k, utilisé par ECO)
-    if (field === 'isHybrideElectrique' && value) {
       updates.valeurNeuf100k = false;
       updates.valeurNeuf150k = false;
     }
@@ -59,7 +74,7 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!data.marque) e.marque = 'La marque est obligatoire';
+    if (!data.marque.trim()) e.marque = 'La marque est obligatoire';
     if (!data.modele.trim()) e.modele = 'Le modèle est obligatoire';
     if (!data.dateMiseEnCirculation.mois) e.mois = 'Le mois est obligatoire';
     if (!data.dateMiseEnCirculation.annee) e.annee = "L'année est obligatoire";
@@ -73,6 +88,12 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
     if (validate()) onNext();
   };
 
+  const selectClass = (hasError: boolean) => `
+    w-full px-4 py-3 rounded-lg border bg-white text-sm text-gray-900
+    focus:outline-none focus:ring-2 focus:ring-[#381893]/30 focus:border-[#381893]
+    ${hasError ? 'border-red-400' : 'border-gray-200'}
+  `;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -80,25 +101,45 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
         <p className="text-gray-500 text-sm">Renseignez les caractéristiques du véhicule à garantir</p>
       </div>
 
-      {/* Marque — champ texte libre */}
-      <Input
-        id="marque"
-        label="Marque du véhicule"
-        placeholder="Ex: Peugeot, BMW, Toyota..."
-        value={data.marque}
-        onChange={e => onChange({ marque: e.target.value })}
-        error={errors.marque}
-      />
+      {/* Marque — liste déroulante + saisie libre */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Marque du véhicule</label>
+        <select
+          value={autreMarque ? '__autre__' : data.marque}
+          onChange={e => handleMarqueSelect(e.target.value)}
+          className={selectClass(!!errors.marque && !autreMarque)}
+        >
+          <option value="">Sélectionner une marque</option>
+          {MARQUES.map(m => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+          <option value="__autre__">Autre marque...</option>
+        </select>
+        {autreMarque && (
+          <input
+            type="text"
+            autoFocus
+            placeholder="Saisir la marque"
+            value={data.marque}
+            onChange={e => onChange({ marque: e.target.value })}
+            className={`mt-2 ${selectClass(!!errors.marque)}`}
+          />
+        )}
+        {errors.marque && <p className="text-xs text-red-500 mt-1">{errors.marque}</p>}
+      </div>
 
       {/* Modèle */}
-      <Input
-        id="modele"
-        label="Modèle"
-        placeholder="Ex: 308, Série 3, Yaris..."
-        value={data.modele}
-        onChange={e => onChange({ modele: e.target.value })}
-        error={errors.modele}
-      />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Modèle</label>
+        <input
+          type="text"
+          placeholder="Ex: 308, Série 3, Yaris..."
+          value={data.modele}
+          onChange={e => onChange({ modele: e.target.value })}
+          className={selectClass(!!errors.modele)}
+        />
+        {errors.modele && <p className="text-xs text-red-500 mt-1">{errors.modele}</p>}
+      </div>
 
       {/* Date de mise en circulation */}
       <div>
@@ -108,11 +149,7 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
             <select
               value={data.dateMiseEnCirculation.mois}
               onChange={e => onChange({ dateMiseEnCirculation: { ...data.dateMiseEnCirculation, mois: e.target.value } })}
-              className={`
-                w-full px-4 py-3 rounded-lg border bg-white text-sm text-gray-900
-                focus:outline-none focus:ring-2 focus:ring-[#381893]/30 focus:border-[#381893]
-                ${errors.mois ? 'border-red-400' : 'border-gray-200'}
-              `}
+              className={selectClass(!!errors.mois)}
             >
               <option value="">Mois</option>
               {MOIS.map(m => (
@@ -125,11 +162,7 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
             <select
               value={data.dateMiseEnCirculation.annee}
               onChange={e => onChange({ dateMiseEnCirculation: { ...data.dateMiseEnCirculation, annee: e.target.value } })}
-              className={`
-                w-full px-4 py-3 rounded-lg border bg-white text-sm text-gray-900
-                focus:outline-none focus:ring-2 focus:ring-[#381893]/30 focus:border-[#381893]
-                ${errors.annee ? 'border-red-400' : 'border-gray-200'}
-              `}
+              className={selectClass(!!errors.annee)}
             >
               <option value="">Année</option>
               {ANNEES.map(a => (
@@ -154,12 +187,7 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
             const num = parseInt(raw);
             onChange({ kilometrage: isNaN(num) ? 0 : num });
           }}
-          className={`
-            w-full px-4 py-3 rounded-lg border bg-white text-gray-900
-            placeholder:text-gray-400 text-sm transition-colors duration-150
-            focus:outline-none focus:ring-2 focus:ring-[#381893]/30 focus:border-[#381893]
-            ${errors.kilometrage ? 'border-red-400' : 'border-gray-200 hover:border-gray-300'}
-          `}
+          className={selectClass(!!errors.kilometrage)}
         />
         {errors.kilometrage && <p className="text-xs text-red-500 mt-1">{errors.kilometrage}</p>}
       </div>
@@ -170,27 +198,27 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <Checkbox
             id="is4x4"
-            label="🚙 4x4 / SUV"
+            label="4x4 / SUV"
             sublabel="Transmission intégrale ou 4 roues motrices"
             checked={data.is4x4}
             onChange={v => handleCheckbox('is4x4', v)}
           />
           <Checkbox
             id="isPlus2t3"
-            label="⚖️ Plus de 2,3 tonnes"
+            label="Plus de 2,3 tonnes"
             sublabel="PTAC entre 2,3T et 3,5T"
             checked={data.isPlus2t3}
             onChange={v => handleCheckbox('isPlus2t3', v)}
           />
           <Checkbox
             id="isPlus14cv"
-            label="🔧 Plus de 14 chevaux fiscaux"
+            label="Plus de 14 chevaux fiscaux"
             checked={data.isPlus14cv}
             onChange={v => handleCheckbox('isPlus14cv', v)}
           />
           <Checkbox
             id="isHybrideElectrique"
-            label="⚡ Hybride ou électrique"
+            label="Hybride ou électrique"
             checked={data.isHybrideElectrique}
             onChange={v => handleCheckbox('isHybrideElectrique', v)}
           />
@@ -200,25 +228,31 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <Checkbox
                 id="valeurNeuf55k"
-                label="💰 Valeur à neuf > 55 000€"
+                label="Valeur à neuf > 55 000€"
                 checked={data.valeurNeuf55k}
                 onChange={v => handleCheckbox('valeurNeuf55k', v)}
               />
               <Checkbox
                 id="valeurNeuf100k"
-                label="💎 Valeur à neuf > 100 000€"
+                label="Valeur à neuf > 100 000€"
                 checked={data.valeurNeuf100k}
                 onChange={v => handleCheckbox('valeurNeuf100k', v)}
                 disabled={data.isHybrideElectrique}
               />
               <Checkbox
                 id="valeurNeuf150k"
-                label="👑 Valeur à neuf > 150 000€"
+                label="Valeur à neuf > 150 000€"
                 checked={data.valeurNeuf150k}
                 onChange={v => handleCheckbox('valeurNeuf150k', v)}
                 disabled={data.isHybrideElectrique}
               />
             </div>
+            {data.isHybrideElectrique && (
+              <p className="text-xs text-[#381893] mt-2">
+                Pour les hybrides/électriques, seule la gamme ECO est disponible (jusqu&apos;à 10 000€/intervention).
+                La valeur &gt; 55 000€ active une pondération ×1,5.
+              </p>
+            )}
           </div>
         </div>
       </div>
