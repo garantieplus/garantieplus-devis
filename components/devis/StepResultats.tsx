@@ -186,7 +186,7 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
 
                 {/* Prix */}
                 <div className="text-center py-3 bg-gray-50 rounded-xl">
-                  <div className="text-5xl font-black text-[#1A1A2E] tracking-tight">
+                  <div className="text-4xl sm:text-5xl font-black text-[#1A1A2E] tracking-tight">
                     {formatPrix(prix)}
                   </div>
                   <div className="text-xs text-gray-400 mt-1.5 font-medium">

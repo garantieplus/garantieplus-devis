@@ -48,9 +48,8 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
       updates.valeurNeuf100k = false;
       updates.valeurNeuf150k = false;
     }
-    // Hybride désactive valeur neuf
+    // Hybride désactive valeur neuf > 100k et > 150k (mais pas > 55k, utilisé par ECO)
     if (field === 'isHybrideElectrique' && value) {
-      updates.valeurNeuf55k = false;
       updates.valeurNeuf100k = false;
       updates.valeurNeuf150k = false;
     }
@@ -204,7 +203,6 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
                 label="💰 Valeur à neuf > 55 000€"
                 checked={data.valeurNeuf55k}
                 onChange={v => handleCheckbox('valeurNeuf55k', v)}
-                disabled={data.isHybrideElectrique}
               />
               <Checkbox
                 id="valeurNeuf100k"

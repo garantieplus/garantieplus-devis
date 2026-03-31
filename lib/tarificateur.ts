@@ -123,11 +123,11 @@ const getAgeAns = (dateCirculation: Date): number => {
 
 const estPondere = (input: VehiculeInput, gamme: string): boolean => {
   if (gamme === 'luxe' || gamme === 'luxe_premium') return false;
-  if (gamme === 'eco') return input.is4x4 || input.isPlus14cv || input.isPlus2t3;
+  if (gamme === 'eco') return input.is4x4 || input.isPlus14cv || input.isPlus2t3 || input.valeurNeuf55k;
   return input.is4x4 || input.isPlus14cv || input.isPlus2t3 || input.valeurNeuf55k;
 };
 
-const appliquerPonderation = (prix: number): number => Math.ceil(prix * 1.5);
+const appliquerPonderation = (prix: number): number => Math.round(prix * 1.5 * 100) / 100;
 
 const applyPrix = (
   base: { '6': number; '12': number; '24': number },
@@ -341,7 +341,7 @@ export const calculerGaranties = (input: VehiculeInput): GarantieProposee[] => {
       etoilesAffichage: '⭐⭐⭐⭐⭐',
       ageMaxAns: 6,
       kmMax: 120000,
-      plafondIntervention: 'VRADE',
+      plafondIntervention: pondere ? '10 000€' : 'VRADE',
       nombrePiecesCouvertes: '+300 pièces',
       prixBase: base5,
       prixFinal: applyPrix(base5, pondere),

@@ -85,7 +85,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="bg-white rounded-xl px-3 py-2 flex items-center justify-center">
-              <Image src="/logo.png" alt="Garantie Plus" width={160} height={62} className="object-contain" />
+              <Image src="/logo.png" alt="Garantie Plus" width={120} height={47} className="object-contain sm:w-[160px] sm:h-[62px]" />
             </div>
           </div>
           <div className="hidden sm:block text-right">
@@ -150,7 +150,7 @@ export default function Home() {
 
       {/* Contenu */}
       <main className="max-w-5xl mx-auto px-4 py-8">
-        <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 ${step === 2 ? '' : 'max-w-2xl mx-auto'}`}>
+        <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8 ${step === 2 ? '' : 'max-w-2xl mx-auto'}`}>
           {step === 0 && (
             <StepVehicule data={form} onChange={updateForm} onNext={() => setStep(1)} />
           )}
