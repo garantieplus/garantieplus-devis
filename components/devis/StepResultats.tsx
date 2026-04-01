@@ -251,6 +251,18 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
         })}
       </div>
 
+      {/* ── CTA DEVENIR PARTENAIRE ── */}
+      <div className="rounded-2xl border border-[#381893]/20 bg-white p-6 text-center shadow-sm">
+        <p className="font-bold text-[#1A1A2E] text-base mb-1">Devenez partenaire Garantie Plus</p>
+        <p className="text-gray-500 text-sm mb-4">Rejoignez notre réseau de garages partenaires et proposez nos garanties à vos clients.</p>
+        <a
+          href="/inscription"
+          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#381893] to-[#47b4e1] text-white font-bold text-base hover:opacity-90 transition-opacity shadow-md"
+        >
+          Devenir Partenaire Garantie Plus →
+        </a>
+      </div>
+
       {/* ── LES + DE GARANTIE PLUS ── */}
       <div className="rounded-2xl overflow-hidden shadow-md border border-[#381893]/20">
         {/* Header section */}

@@ -188,10 +188,20 @@ const emailGarageHTML = (devis: Devis, garanties: GarantieProposee[]) => {
   <div style="background:white;border:1px solid #E5E7EB;border-top:none;padding:28px;">
 
     <p style="margin:0 0 4px;color:#1A1A2E;font-size:15px;font-weight:600;">Bonjour ${devis.nom_contact},</p>
-    <p style="margin:0 0 24px;color:#6B7280;font-size:13px;line-height:1.6;">
+    <p style="margin:0 0 20px;color:#6B7280;font-size:13px;line-height:1.6;">
       Suite à votre demande, voici les Garanties Panne Mécanique disponibles pour votre véhicule.
       Le <strong>devis complet est joint en PDF</strong> à cet email. Tous les tarifs sont en <strong>TTC, taxe d'assurance incluse</strong>.
     </p>
+
+    <!-- CTA Partenaire — en haut du body -->
+    <div style="text-align:center;margin-bottom:24px;padding:18px 20px;border:1px solid #E5E7EB;border-radius:12px;background:#F9FAFB;">
+      <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#1A1A2E;">Devenez partenaire Garantie Plus</p>
+      <p style="margin:0 0 12px;font-size:11px;color:#6B7280;">Rejoignez notre réseau de garages partenaires et proposez nos garanties à vos clients.</p>
+      <a href="${baseUrl}/inscription"
+         style="display:inline-block;background:linear-gradient(90deg,#381893 0%,#47b4e1 100%);color:white;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:0.3px;">
+        Devenir Partenaire Garantie Plus &rarr;
+      </a>
+    </div>
 
     <!-- ══ BLOCS VÉHICULE + GARAGE ══ -->
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
@@ -289,16 +299,6 @@ const emailGarageHTML = (devis: Devis, garanties: GarantieProposee[]) => {
           </tr>`).join('')}
         </table>
       </div>
-    </div>
-
-    <!-- CTA Partenaire -->
-    <div style="text-align:center;margin-bottom:20px;padding:20px;border:1px solid #E5E7EB;border-radius:12px;background:#F9FAFB;">
-      <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#1A1A2E;">Devenez partenaire Garantie Plus</p>
-      <p style="margin:0 0 14px;font-size:12px;color:#6B7280;">Rejoignez notre réseau de garages partenaires et proposez nos garanties à vos clients.</p>
-      <a href="${baseUrl}/inscription"
-         style="display:inline-block;background:linear-gradient(90deg,#381893 0%,#47b4e1 100%);color:white;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.3px;">
-        Devenir Partenaire Garantie Plus &rarr;
-      </a>
     </div>
 
     <!-- Contact -->

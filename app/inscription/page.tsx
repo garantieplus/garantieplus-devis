@@ -234,10 +234,8 @@ export default function InscriptionPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8">
-        {/* Avantages */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           {[
-            { icon: '💰', title: 'Commission attractive', desc: 'Rémunération sur chaque contrat souscrit' },
             { icon: '⚡', title: '100% digital', desc: 'Souscription et gestion entièrement en ligne' },
             { icon: '🤝', title: 'Accompagnement', desc: 'Formation et support commercial dédié' },
           ].map((item) => (
