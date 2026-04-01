@@ -30,8 +30,8 @@ export default function AdminLogin() {
       <div className="w-full max-w-md">
         {/* Logo + titre */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center bg-white rounded-2xl px-4 py-2 mb-4 shadow-lg border border-gray-100">
-            <Image src="/logo.png" alt="Garantie Plus" width={140} height={54} className="object-contain" />
+          <div className="inline-flex items-center justify-center bg-white rounded-2xl px-6 py-4 mb-4 shadow-lg border border-gray-100">
+            <Image src="/logo.png" alt="Garantie Plus" width={240} height={93} className="object-contain w-[180px] sm:w-[240px]" />
           </div>
           <h1 className="text-2xl font-bold text-[#1A1A2E]">Back-office</h1>
           <p className="text-gray-500 text-sm mt-1">Garantie Plus — Équipe commerciale</p>

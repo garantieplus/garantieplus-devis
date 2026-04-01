@@ -218,17 +218,17 @@ export default function InscriptionPage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Image src="/logo.png" alt="Garantie Plus" width={120} height={47} className="object-contain" />
+        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between gap-4" style={{ minHeight: '80px' }}>
+          <Image src="/logo.png" alt="Garantie Plus" width={260} height={100} className="object-contain w-[160px] sm:w-[220px] lg:w-[260px]" />
           <a href="https://www.garantieplus.fr" target="_blank" rel="noopener noreferrer"
-            className="text-xs text-gray-500 hover:text-[#381893] transition-colors">
+            className="text-sm font-medium text-gray-500 hover:text-[#381893] transition-colors hidden sm:block">
             garantieplus.fr
           </a>
         </div>
         <div className="bg-gradient-to-r from-[#381893] to-[#47b4e1]">
-          <div className="max-w-3xl mx-auto px-4 py-4 text-center">
-            <h1 className="text-lg sm:text-xl font-extrabold text-white">Devenir Partenaire Garantie Plus</h1>
-            <p className="text-white/80 text-xs sm:text-sm mt-0.5">Proposez nos garanties à vos clients — Rejoignez notre réseau de garages</p>
+          <div className="max-w-3xl mx-auto px-6 py-5 text-center">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white">Devenir Partenaire Garantie Plus</h1>
+            <p className="text-white/80 text-sm mt-1">Proposez nos garanties à vos clients — Rejoignez notre réseau de garages</p>
           </div>
         </div>
       </header>

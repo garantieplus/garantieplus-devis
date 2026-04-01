@@ -75,15 +75,11 @@ export default function AdminDashboard() {
 
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-[#381893] to-[#47b4e1] rounded-lg flex items-center justify-center p-1">
-              <Image src="/logo.svg" alt="Garantie Plus" width={20} height={20} className="brightness-0 invert" />
-            </div>
-            <div>
-              <span className="font-bold text-[#1A1A2E]">Garantie Plus</span>
-              <span className="text-gray-400 text-sm ml-2">Back-office</span>
-            </div>
+        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between gap-4" style={{ minHeight: '80px' }}>
+          <div className="flex items-center gap-4">
+            <Image src="/logo.png" alt="Garantie Plus" width={220} height={85} className="object-contain w-[140px] sm:w-[180px] lg:w-[220px]" />
+            <span className="text-gray-300 text-xl font-light hidden sm:block">|</span>
+            <span className="text-gray-500 text-sm font-medium hidden sm:block">Back-office</span>
           </div>
           <div className="flex items-center gap-3">
             <Link
