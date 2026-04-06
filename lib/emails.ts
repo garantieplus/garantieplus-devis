@@ -372,18 +372,19 @@ export async function envoyerEmailGarage({
     let pdfBuffer: Buffer | null = null;
     try {
       pdfBuffer = await genererPDFDevis(devis, garanties);
+      console.log('[Email] PDF généré avec succès, taille:', pdfBuffer.length, 'bytes');
     } catch (pdfErr) {
-      console.error('[Email] Erreur génération PDF (non bloquant):', pdfErr);
+      console.error('[Email] Erreur génération PDF:', pdfErr);
     }
 
     const fromAddr = process.env.EMAIL_FROM || 'onboarding@resend.dev';
-    // En mode test (onboarding@resend.dev), Resend n'autorise l'envoi que vers
-    // l'email du compte Resend. On redirige donc vers EMAIL_ADMIN.
-    // En production (domaine vérifié), on envoie directement au garage.
     const isTestMode = fromAddr === 'onboarding@resend.dev';
     const toAddr = isTestMode
       ? (process.env.EMAIL_ADMIN || 'contact@garantieplus.fr')
       : devis.email;
+
+    const safeFilename = `devis-garantieplus-${devis.marque}-${devis.modele}.pdf`
+      .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, '');
 
     const payload: Parameters<typeof resend.emails.send>[0] = {
       from: `Garantie Plus <${fromAddr}>`,
@@ -395,11 +396,15 @@ export async function envoyerEmailGarage({
     };
 
     if (pdfBuffer) {
+      // Resend accepte base64 string ou Buffer — on passe le Buffer directement
       payload.attachments = [{
-        filename: `devis-garantieplus-${devis.marque}-${devis.modele}.pdf`
-          .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, ''),
+        filename: safeFilename,
         content: pdfBuffer,
+        contentType: 'application/pdf',
       }];
+      console.log('[Email] Pièce jointe ajoutée:', safeFilename);
+    } else {
+      console.warn('[Email] PDF non généré — email envoyé sans pièce jointe');
     }
 
     const { data, error } = await resend.emails.send(payload);
