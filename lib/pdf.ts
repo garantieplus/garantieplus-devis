@@ -1,17 +1,21 @@
 import { PDFDocument, StandardFonts, rgb, PageSizes } from 'pdf-lib';
 import { Devis, GarantieProposee } from '@/types';
 
+// Sanitise any string for WinAnsi encoding (pdf-lib standard fonts)
+const s = (str: string) =>
+  str
+    .replace(/\u202F/g, ' ')   // narrow no-break space
+    .replace(/\u00A0/g, ' ')   // no-break space
+    .replace(/€/g, 'EUR')
+    .replace(/[^\x00-\xFF]/g, '?'); // replace any remaining non-latin chars
+
 const formatPrix = (n: number) =>
-  new Intl.NumberFormat('fr-FR', {
+  s(new Intl.NumberFormat('fr-FR', {
     style: 'currency', currency: 'EUR',
     minimumFractionDigits: 2, maximumFractionDigits: 2,
-  })
-  .format(n)
-  .replace(/\u202F/g, ' ')
-  .replace(/\u00A0/g, ' ')
-  .replace(/€/g, 'EUR');
+  }).format(n));
 
-const formatKm = (n: number) => n.toLocaleString('fr-FR') + ' km';
+const formatKm = (n: number) => s(n.toLocaleString('fr-FR') + ' km');
 
 // ── Couleurs ──────────────────────────────────────────────────────────────────
 const VIOLET      = rgb(0.220, 0.094, 0.576);  // #381893
@@ -167,7 +171,7 @@ export async function genererPDFDevis(
   txt('Courtier en Garanties Panne Mecanique Automobile', M + 10, 44, { size: 8, color: rgb(0.9, 0.9, 0.9) });
   txt('ORIAS n\u00b025004236  |  130, rue de Courcelles - 75017 Paris', M + 10, 57, { size: 7.5, color: rgb(0.8, 0.8, 0.85) });
   // Date right
-  const dateStr = `Devis du ${new Date().toLocaleDateString('fr-FR')}`;
+  const dateStr = safe(`Devis du ${new Date().toLocaleDateString('fr-FR')}`);
   txt(dateStr, W - M - 10 - bold.widthOfTextAtSize(dateStr, 8), 57, { size: 8, color: rgb(0.85, 0.85, 0.9) });
 
   y = HDR;
@@ -295,7 +299,7 @@ export async function genererPDFDevis(
       txt(gammeLabel, M + 10, y + 12, { font: bold, size: 7, color: rgb(1, 1, 1, ) });
       txt(safe(g.nomCommercial), M + 10, y + 24, { font: bold, size: 10, color: WHITE });
       // Eligibilité droite
-      const eligStr = `< ${g.ageMaxAns} ans  et  < ${g.kmMax.toLocaleString('fr-FR')} km`;
+      const eligStr = safe(`< ${g.ageMaxAns} ans  et  < ${g.kmMax.toLocaleString('fr-FR')} km`);
       txt(eligStr, M + CW - 10 - regular.widthOfTextAtSize(eligStr, 7.5), y + 12, { size: 7.5, color: rgb(0.85, 0.9, 0.95) });
       // Pondération
       if (g.pondereApplique) {
