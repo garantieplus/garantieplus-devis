@@ -9,6 +9,7 @@ export async function GET() {
     const devisTest: Devis = {
       id: 'test-000',
       created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       marque: 'Peugeot',
       modele: '308',
       date_mise_en_circulation: '2021-06-01',
@@ -69,7 +70,7 @@ export async function GET() {
 
     const pdfBuffer = await genererPDFDevis(devisTest, garantiesTest);
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="test-devis-garantieplus.pdf"',
