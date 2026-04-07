@@ -162,7 +162,7 @@ export const calculerGaranties = (input: VehiculeInput): GarantieProposee[] => {
       garanties.push({
         gamme: 'eco',
         niveau: 5,
-        nomCommercial: 'Garantie ECO 5 Trèfles',
+        nomCommercial: 'Garantie ECO 5 Étoiles',
         etoilesAffichage: '🍀🍀🍀🍀🍀',
         ageMaxAns: 6,
         kmMax: 120000,
@@ -181,7 +181,7 @@ export const calculerGaranties = (input: VehiculeInput): GarantieProposee[] => {
       garanties.push({
         gamme: 'eco',
         niveau: 5,
-        nomCommercial: 'Garantie ECO 5 Trèfles',
+        nomCommercial: 'Garantie ECO 5 Étoiles',
         etoilesAffichage: '🍀🍀🍀🍀🍀',
         ageMaxAns: 10,
         kmMax: 150000,

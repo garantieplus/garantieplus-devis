@@ -18,34 +18,54 @@ const getGammeStyle = (gamme: string) => {
     case 'eco':
       return {
         label: 'ECO',
-        headerGradient: 'from-[#2E7D4F] to-[#3a9960]',
-        accentClass: 'text-[#2E7D4F]',
-        borderClass: 'border-[#2E7D4F]',
-        ringClass: 'ring-[#2E7D4F]/30',
+        headerClass: 'bg-[#166534]',
+        headerGradient: '',
+        accentClass: 'text-[#166534]',
+        borderClass: 'border-[#16a34a]',
+        ringClass: 'ring-[#16a34a]/30',
+        activeDurationClass: 'bg-[#166534] text-white',
+        eligBgClass: 'bg-[#dcfce7]',
+        eligTextClass: 'text-[#166534]',
+        recommendedBg: 'bg-[#16a34a]',
       };
     case 'luxe':
       return {
         label: 'LUXE',
+        headerClass: 'bg-gradient-to-br from-[#1A1A2E] to-[#2a2a4e]',
         headerGradient: 'from-[#1A1A2E] to-[#2a2a4e]',
         accentClass: 'text-[#1A1A2E]',
         borderClass: 'border-[#1A1A2E]',
         ringClass: 'ring-[#1A1A2E]/30',
+        activeDurationClass: 'bg-gradient-to-r from-[#1A1A2E] to-[#2a2a4e] text-white',
+        eligBgClass: 'bg-white/15',
+        eligTextClass: 'text-white/80',
+        recommendedBg: 'bg-[#F5A623]',
       };
     case 'luxe_premium':
       return {
         label: 'LUXE PREMIUM',
+        headerClass: 'bg-gradient-to-br from-[#0D0D1A] to-[#1a1a30]',
         headerGradient: 'from-[#0D0D1A] to-[#1a1a30]',
         accentClass: 'text-[#0D0D1A]',
         borderClass: 'border-[#0D0D1A]',
         ringClass: 'ring-[#0D0D1A]/30',
+        activeDurationClass: 'bg-gradient-to-r from-[#0D0D1A] to-[#1a1a30] text-white',
+        eligBgClass: 'bg-white/15',
+        eligTextClass: 'text-white/80',
+        recommendedBg: 'bg-[#F5A623]',
       };
     default:
       return {
         label: 'CLASSIQUE',
+        headerClass: 'bg-gradient-to-br from-[#381893] to-[#47b4e1]',
         headerGradient: 'from-[#381893] to-[#47b4e1]',
         accentClass: 'text-[#381893]',
         borderClass: 'border-[#381893]',
         ringClass: 'ring-[#381893]/30',
+        activeDurationClass: 'bg-gradient-to-r from-[#381893] to-[#47b4e1] text-white',
+        eligBgClass: 'bg-white/15',
+        eligTextClass: 'text-white/80',
+        recommendedBg: 'bg-[#F5A623]',
       };
   }
 };
@@ -135,13 +155,13 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
             >
               {/* Badge recommandé */}
               {isRecommended && (
-                <div className="absolute top-3 right-3 z-10 bg-[#F5A623] text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                <div className={`absolute top-3 right-3 z-10 ${style.recommendedBg} text-white text-xs font-bold px-3 py-1 rounded-full shadow`}>
                   RECOMMANDÉ
                 </div>
               )}
 
               {/* ── HEADER ── */}
-              <div className={`bg-gradient-to-br ${style.headerGradient} px-5 pt-5 pb-4`}>
+              <div className={`${style.headerClass} px-5 pt-5 pb-4`}>
                 <div className="text-white/70 text-[10px] font-bold tracking-widest uppercase mb-2">
                   Gamme {style.label}
                 </div>
@@ -160,8 +180,8 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
                 </div>
 
                 {/* Éligibilité — nowrap, format compact */}
-                <div className="bg-white/15 rounded-lg px-3 py-1.5 overflow-hidden text-center">
-                  <span className="text-white/80 text-[11px] whitespace-nowrap block overflow-hidden text-ellipsis text-center">
+                <div className={`${style.eligBgClass} rounded-lg px-3 py-1.5 overflow-hidden text-center`}>
+                  <span className={`${style.eligTextClass} text-[11px] whitespace-nowrap block overflow-hidden text-ellipsis text-center`}>
                     &lt; {g.ageMaxAns} ans / {g.kmMax.toLocaleString('fr-FR')} km
                   </span>
                 </div>
@@ -190,9 +210,7 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
                         onClick={() => setDurees(prev => ({ ...prev, [i]: d }))}
                         className={`
                           flex-1 py-2 text-sm font-bold transition-all
-                          ${duree === d
-                            ? `bg-gradient-to-r ${style.headerGradient} text-white`
-                            : 'text-gray-500 hover:bg-gray-50'}
+                          ${duree === d ? style.activeDurationClass : 'text-gray-500 hover:bg-gray-50'}
                         `}
                       >
                         {d} mois
@@ -202,8 +220,8 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
                 </div>
 
                 {/* Prix — centré */}
-                <div className="flex flex-col items-center text-center py-3 bg-gray-50 rounded-xl">
-                  <div className="text-4xl sm:text-5xl font-black text-[#1A1A2E] tracking-tight">
+                <div className={`flex flex-col items-center text-center py-3 rounded-xl ${g.gamme === 'eco' && duree === '12' ? 'bg-[#f0fdf4]' : 'bg-gray-50'}`}>
+                  <div className={`text-4xl sm:text-5xl font-black tracking-tight ${g.gamme === 'eco' && duree === '12' ? 'text-[#166534]' : 'text-[#1A1A2E]'}`}>
                     {formatPrix(prix)}
                   </div>
                   <div className="text-xs text-gray-400 mt-1.5 font-medium">

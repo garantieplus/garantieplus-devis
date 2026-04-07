@@ -202,30 +202,46 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
 
           {sorted.map((g, idx) => {
             const isRec = idx === 0;
+            const isEco = g.gamme === 'eco';
             return (
-              <View key={idx} style={isRec ? S.garantieCardRec : S.garantieCard}>
+              <View key={idx} style={[
+                isRec ? S.garantieCardRec : S.garantieCard,
+                isEco ? { borderColor: '#16a34a' } : {},
+              ]}>
                 {/* Header carte */}
-                <View style={isRec ? S.cardHeaderRec : S.cardHeaderPlain}>
+                <View style={[
+                  isRec ? S.cardHeaderRec : S.cardHeaderPlain,
+                  isEco ? { backgroundColor: '#166534' } : {},
+                ]}>
                   <View style={S.cardLeft}>
                     <Text style={isRec ? S.garantieNameRec : S.garantieName}>
                       {g.nomCommercial}
                     </Text>
                     <View style={S.starsRow}>
                       {Array.from({ length: 5 }, (_, i) => (
-                        <Text key={i} style={[S.star, { color: i < g.niveau ? (g.gamme === 'eco' ? '#2E7D4F' : '#F5A623') : '#cccccc' }]}>
+                        <Text key={i} style={[S.star, { color: i < g.niveau ? (isEco ? '#16a34a' : '#F5A623') : '#cccccc' }]}>
                           {getRatingChar(g.gamme)}
                         </Text>
                       ))}
                       {isRec && (
-                        <View style={S.recBadge}>
+                        <View style={[S.recBadge, isEco ? { backgroundColor: 'rgba(220,252,231,0.2)' } : {}]}>
                           <Text style={S.recBadgeText}>RECOMMANDE</Text>
                         </View>
                       )}
                     </View>
                   </View>
-                  <View style={isRec ? S.plafondBadgeRec : S.plafondBadge}>
-                    <Text style={isRec ? S.plafondLabelRec : S.plafondLabel}>Plafond / Sinistre</Text>
-                    <Text style={isRec ? S.plafondTextRec : S.plafondText}>
+                  <View style={[
+                    isRec ? S.plafondBadgeRec : S.plafondBadge,
+                    isEco ? { backgroundColor: '#dcfce7' } : {},
+                  ]}>
+                    <Text style={[
+                      isRec ? S.plafondLabelRec : S.plafondLabel,
+                      isEco ? { color: '#166534', opacity: 1 } : {},
+                    ]}>Plafond / Sinistre</Text>
+                    <Text style={[
+                      isRec ? S.plafondTextRec : S.plafondText,
+                      isEco ? { color: '#166534' } : {},
+                    ]}>
                       {g.plafondIntervention}
                     </Text>
                   </View>
@@ -240,14 +256,21 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
                       <View key={key} style={[
                         is12 ? S.priceCol12 : S.priceCol,
                         isLast ? { borderRightWidth: 0 } : {},
+                        is12 && isEco ? { backgroundColor: '#f0fdf4' } : {},
                       ]}>
-                        <Text style={is12 ? S.priceDuration12 : S.priceDuration}>
+                        <Text style={[
+                          is12 ? S.priceDuration12 : S.priceDuration,
+                          is12 && isEco ? { color: '#166534' } : {},
+                        ]}>
                           {key} MOIS
                         </Text>
-                        <Text style={is12 ? S.priceAmount12 : S.priceAmount}>
+                        <Text style={[
+                          is12 ? S.priceAmount12 : S.priceAmount,
+                          is12 && isEco ? { color: '#166534' } : {},
+                        ]}>
                           {fmtPrix(g.prixFinal[key])}
                         </Text>
-                        {is12 && <Text style={S.priceRecLabel}>RECOMMANDE</Text>}
+                        {is12 && <Text style={[S.priceRecLabel, isEco ? { color: '#166534' } : {}]}>RECOMMANDE</Text>}
                       </View>
                     );
                   })}
