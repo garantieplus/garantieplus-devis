@@ -5,11 +5,27 @@ import Button from '@/components/ui/Button';
 import { DevisFormData } from '@/types';
 
 const MARQUES = [
-  'Abarth', 'Alfa Romeo', 'Audi', 'BMW', 'Citroën', 'Dacia', 'DS', 'Ferrari',
-  'Fiat', 'Ford', 'Honda', 'Hyundai', 'Jaguar', 'Jeep', 'Kia', 'Lamborghini',
-  'Land Rover', 'Lexus', 'Maserati', 'Mazda', 'Mercedes-Benz', 'MINI',
-  'Mitsubishi', 'Nissan', 'Opel', 'Peugeot', 'Porsche', 'Renault', 'SEAT',
-  'Skoda', 'Smart', 'Subaru', 'Suzuki', 'Tesla', 'Toyota', 'Volkswagen', 'Volvo',
+  'Abarth', 'Aiways', 'Aixam', 'Alfa Romeo', 'Alpine', 'Aston Martin', 'Audi',
+  'Bentley', 'BMW', 'Bugatti', 'BYD',
+  'Cadillac', 'Casalini', 'Chatenet', 'Citroën', 'Cupra',
+  'Dacia', 'DS Automobiles',
+  'Ferrari', 'Fiat', 'Fisker', 'Ford',
+  'Genesis',
+  'Honda', 'Hyundai',
+  'Ineos',
+  'Jaecoo', 'Jaguar', 'Jeep',
+  'Kia',
+  'Lamborghini', 'Lancia', 'Land Rover', 'Leapmotor', 'Lexus', 'Ligier', 'Lotus', 'Lynk & Co',
+  'Maserati', 'Mazda', 'McLaren', 'Mercedes-Benz', 'MG Motor', 'Microcar', 'Microlino', 'Mini', 'Mitsubishi', 'Mobilize', 'Morgan',
+  'Nissan',
+  'Omoda', 'Opel',
+  'Pagani', 'Peugeot', 'PGO', 'Polestar', 'Porsche',
+  'Renault', 'Rimac', 'Rolls-Royce',
+  'Seat', 'Seres', 'Skoda', 'Smart', 'Subaru', 'Suzuki',
+  'Tesla', 'Toyota',
+  'VinFast', 'Volkswagen', 'Volvo',
+  'Xpeng',
+  'Zeekr',
 ];
 
 const MOIS = [
@@ -113,13 +129,13 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
           {MARQUES.map(m => (
             <option key={m} value={m}>{m}</option>
           ))}
-          <option value="__autre__">Autre marque...</option>
+          <option value="__autre__">Autre marque</option>
         </select>
         {autreMarque && (
           <input
             type="text"
             autoFocus
-            placeholder="Saisir la marque"
+            placeholder="Saisissez la marque du véhicule"
             value={data.marque}
             onChange={e => onChange({ marque: e.target.value })}
             className={`mt-2 ${selectClass(!!errors.marque)}`}
