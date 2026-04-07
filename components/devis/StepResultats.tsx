@@ -231,12 +231,12 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
 
                 {/* Plafond + Pièces couvertes */}
                 <div className="grid grid-cols-2 gap-3">
-                  {/* Plafond — overflow contrôlé */}
-                  <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-white overflow-hidden`}>
-                    <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap text-center">
+                  {/* Plafond */}
+                  <div className={`rounded-xl p-3 flex flex-col items-center justify-center text-center border-2 ${style.borderClass} bg-white`}>
+                    <div className="text-[9px] text-gray-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap text-center">
                       Plafond / sinistre
                     </div>
-                    <div className={`font-black text-[13px] ${style.accentClass} leading-tight overflow-hidden text-ellipsis whitespace-nowrap text-center`}>
+                    <div className={`font-black text-[13px] ${style.accentClass} leading-tight text-center whitespace-nowrap`}>
                       {plafondAffiche === 'VRADE' ? 'VRADE' : plafondAffiche}
                     </div>
                   </div>
