@@ -154,45 +154,45 @@ export const calculerGaranties = (input: VehiculeInput): GarantieProposee[] => {
 
   // ── GAMME ECO (hybride/électrique) ────────────────────────────────────────
   if (input.isHybrideElectrique) {
-    const pondere5 = estPondere(input, 'eco');
-    const base5 = { '6': 290, '12': 390, '24': 690 };
-    if (age <= 6 && km <= 70000) {
+    const pondere = estPondere(input, 'eco');
+
+    if (age <= 6 && km <= 120000) {
+      // Option A — véhicule < 6 ans / 120 000 km
+      const base = { '6': 290, '12': 390, '24': 690 };
       garanties.push({
         gamme: 'eco',
         niveau: 5,
-        nomCommercial: 'Garantie ECO 5 Feuilles',
+        nomCommercial: 'Garantie ECO 5 Trèfles',
         etoilesAffichage: '🍀🍀🍀🍀🍀',
         ageMaxAns: 6,
-        kmMax: 70000,
-        plafondIntervention: '10 000€',
-        nombrePiecesCouvertes: '+300 pièces',
-        prixBase: base5,
-        prixFinal: applyPrix(base5, pondere5),
-        pondereApplique: pondere5,
-        avantagesCommuns: AVANTAGES_COMMUNS,
-        avantagesSpecifiques: AVANTAGES_SPECIFIQUES['eco_5'],
-        fichierCG: '/cg/CG_ECO_5etoiles.pdf',
-      });
-    }
-
-    const pondere4 = estPondere(input, 'eco');
-    const base4 = { '6': 390, '12': 490, '24': 890 };
-    if (age <= 10 && km <= 120000) {
-      garanties.push({
-        gamme: 'eco',
-        niveau: 4,
-        nomCommercial: 'Garantie ECO 4 Feuilles',
-        etoilesAffichage: '🍀🍀🍀🍀',
-        ageMaxAns: 10,
         kmMax: 120000,
         plafondIntervention: '10 000€',
         nombrePiecesCouvertes: '+300 pièces',
-        prixBase: base4,
-        prixFinal: applyPrix(base4, pondere4),
-        pondereApplique: pondere4,
+        prixBase: base,
+        prixFinal: applyPrix(base, pondere),
+        pondereApplique: pondere,
+        avantagesCommuns: AVANTAGES_COMMUNS,
+        avantagesSpecifiques: AVANTAGES_SPECIFIQUES['eco_5'],
+        fichierCG: '/cg/CG_ECO_5trefles.pdf',
+      });
+    } else if (age <= 10 && km <= 150000) {
+      // Option B — véhicule 6-10 ans / 150 000 km
+      const base = { '6': 390, '12': 490, '24': 890 };
+      garanties.push({
+        gamme: 'eco',
+        niveau: 5,
+        nomCommercial: 'Garantie ECO 5 Trèfles',
+        etoilesAffichage: '🍀🍀🍀🍀🍀',
+        ageMaxAns: 10,
+        kmMax: 150000,
+        plafondIntervention: '10 000€',
+        nombrePiecesCouvertes: '+300 pièces',
+        prixBase: base,
+        prixFinal: applyPrix(base, pondere),
+        pondereApplique: pondere,
         avantagesCommuns: AVANTAGES_COMMUNS,
         avantagesSpecifiques: AVANTAGES_SPECIFIQUES['eco_4'],
-        fichierCG: '/cg/CG_ECO_4etoiles.pdf',
+        fichierCG: '/cg/CG_ECO_5trefles.pdf',
       });
     }
 
@@ -415,9 +415,9 @@ export const runTests = (): void => {
   const t1 = calculerGaranties({ ...base, dateCirculation: makeDate(5), kilometrage: 80000 });
   console.assert(t1.length === 3 && t1.every(g => g.gamme === 'classique'), 'T1 failed');
 
-  // Toyota hybride, 4 ans, 50 000 km → 2 eco (niveaux 5 et 4)
+  // Toyota hybride, 4 ans, 50 000 km → 1 eco (Option A — < 6 ans)
   const t2 = calculerGaranties({ ...base, isHybrideElectrique: true, dateCirculation: makeDate(4), kilometrage: 50000 });
-  console.assert(t2.length === 2 && t2.every(g => g.gamme === 'eco'), 'T2 failed');
+  console.assert(t2.length === 1 && t2[0].gamme === 'eco' && t2[0].ageMaxAns === 6, 'T2 failed');
 
   // BMW Série 7, 8 ans, 90 000 km, >100k€ → luxe 4 + 3
   const t3 = calculerGaranties({ ...base, valeurNeuf100k: true, valeurNeuf55k: true, dateCirculation: makeDate(8), kilometrage: 90000 });
@@ -436,9 +436,9 @@ export const runTests = (): void => {
   console.assert(t6.length === 2 && t6.every(g => g.pondereApplique), 'T6 failed');
   console.assert(t6[0].prixFinal['12'] === Math.ceil(389 * 1.5), 'T6 prix failed');
 
-  // Tesla hybride, 5 ans, 65 000 km → eco uniquement
+  // Tesla hybride, 5 ans, 65 000 km → 1 eco Option A (< 6 ans / 120 000 km)
   const t7 = calculerGaranties({ ...base, isHybrideElectrique: true, dateCirculation: makeDate(5), kilometrage: 65000 });
-  console.assert(t7.every(g => g.gamme === 'eco'), 'T7 failed');
+  console.assert(t7.length === 1 && t7[0].gamme === 'eco' && t7[0].ageMaxAns === 6, 'T7 failed');
 
   console.log('✅ Tous les tests tarificateur sont passés.');
 };

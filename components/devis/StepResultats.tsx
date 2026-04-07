@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { GarantieProposee } from '@/types';
+import { getRatingChar } from '@/lib/garantieUtils';
 
 type Duree = '6' | '12' | '24';
 
@@ -145,10 +146,12 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
                   Gamme {style.label}
                 </div>
 
-                {/* Étoiles — remplace "X/5" */}
+                {/* Étoiles ou trèfles selon la gamme */}
                 <div className="flex gap-0.5 mb-2">
                   {Array.from({ length: 5 }, (_, k) => (
-                    <span key={k} className={`text-base ${k < g.niveau ? 'text-[#F5A623]' : 'text-white/25'}`}>★</span>
+                    <span key={k} className={`text-base ${k < g.niveau ? (g.gamme === 'eco' ? '' : 'text-[#F5A623]') : 'text-white/25'}`}>
+                      {getRatingChar(g.gamme)}
+                    </span>
                   ))}
                 </div>
 

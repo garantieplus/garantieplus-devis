@@ -6,6 +6,7 @@ import {
 import path from 'path';
 import fs from 'fs';
 import { Devis, GarantieProposee } from '@/types';
+import { getRatingChar } from '@/lib/garantieUtils';
 
 // ── Polices ───────────────────────────────────────────────────────────
 try {
@@ -211,8 +212,8 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
                     </Text>
                     <View style={S.starsRow}>
                       {Array.from({ length: 5 }, (_, i) => (
-                        <Text key={i} style={[S.star, { color: i < g.niveau ? '#F5A623' : '#cccccc' }]}>
-                          ★
+                        <Text key={i} style={[S.star, { color: i < g.niveau ? (g.gamme === 'eco' ? '#2E7D4F' : '#F5A623') : '#cccccc' }]}>
+                          {getRatingChar(g.gamme)}
                         </Text>
                       ))}
                       {isRec && (
