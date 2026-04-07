@@ -18,41 +18,33 @@ const getGammeStyle = (gamme: string) => {
       return {
         label: 'ECO',
         headerGradient: 'from-[#2E7D4F] to-[#3a9960]',
-        accentColor: '#2E7D4F',
         accentClass: 'text-[#2E7D4F]',
         borderClass: 'border-[#2E7D4F]',
         ringClass: 'ring-[#2E7D4F]/30',
-        badgeBg: 'bg-[#2E7D4F]',
       };
     case 'luxe':
       return {
         label: 'LUXE',
         headerGradient: 'from-[#1A1A2E] to-[#2a2a4e]',
-        accentColor: '#1A1A2E',
         accentClass: 'text-[#1A1A2E]',
         borderClass: 'border-[#1A1A2E]',
         ringClass: 'ring-[#1A1A2E]/30',
-        badgeBg: 'bg-[#1A1A2E]',
       };
     case 'luxe_premium':
       return {
         label: 'LUXE PREMIUM',
         headerGradient: 'from-[#0D0D1A] to-[#1a1a30]',
-        accentColor: '#0D0D1A',
         accentClass: 'text-[#0D0D1A]',
         borderClass: 'border-[#0D0D1A]',
         ringClass: 'ring-[#0D0D1A]/30',
-        badgeBg: 'bg-[#0D0D1A]',
       };
     default:
       return {
         label: 'CLASSIQUE',
         headerGradient: 'from-[#381893] to-[#47b4e1]',
-        accentColor: '#381893',
         accentClass: 'text-[#381893]',
         borderClass: 'border-[#381893]',
         ringClass: 'ring-[#381893]/30',
-        badgeBg: 'bg-[#381893]',
       };
   }
 };
@@ -61,16 +53,27 @@ const formatPrix = (n: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
 const AVANTAGES_PLUS = [
-  'Pas de Vetuste',
+  'Pas de Vétusté',
   'Cessible Gratuitement',
   'Pas de Franchise',
-  'Kilometrage Illimite',
+  'Kilométrage Illimité',
   'Pas de Carence',
   'Plafond par Intervention',
   "Pas d'avance de Frais",
   '100% Digital',
-  'Couverture Europeenne',
+  'Couverture Européenne',
 ];
+
+function BoutonRefaire({ onReset }: { onReset: () => void }) {
+  return (
+    <button
+      onClick={onReset}
+      className="inline-flex items-center gap-2 border border-gray-300 text-gray-600 text-sm px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0"
+    >
+      ← Refaire un devis
+    </button>
+  );
+}
 
 export default function StepResultats({ garanties, marque, modele, email, onReset }: Props) {
   const [durees, setDurees] = useState<Record<number, Duree>>(() =>
@@ -80,9 +83,14 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
   if (garanties.length === 0) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-3">Vehicule non eligible</h2>
+        {onReset && (
+          <div className="flex justify-start mb-6">
+            <BoutonRefaire onReset={onReset} />
+          </div>
+        )}
+        <h2 className="text-2xl font-bold text-gray-800 mb-3">Véhicule non éligible</h2>
         <p className="text-gray-600 mb-6 max-w-md mx-auto">
-          Votre vehicule ne correspond pas aux criteres d&apos;eligibilite actuels (age &gt; 15 ans ou kilometrage &gt; 200 000 km).
+          Votre véhicule ne correspond pas aux critères d&apos;éligibilité actuels (âge &gt; 15 ans ou kilométrage &gt; 200 000 km).
         </p>
         <a
           href="mailto:contact@garantieplus.fr"
@@ -101,17 +109,10 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
         <div>
           <h2 className="text-2xl font-bold text-[#1A1A2E] mb-1">Vos garanties disponibles</h2>
           <p className="text-gray-500 text-sm">
-            Resultats pour <strong>{marque} {modele}</strong> — Devis envoye a <strong>{email}</strong>
+            Résultats pour <strong>{marque} {modele}</strong> — Devis envoyé à <strong>{email}</strong>
           </p>
         </div>
-        {onReset && (
-          <button
-            onClick={onReset}
-            className="inline-flex items-center gap-2 border border-gray-300 text-gray-600 text-sm px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0"
-          >
-            ← Refaire un devis
-          </button>
-        )}
+        {onReset && <BoutonRefaire onReset={onReset} />}
       </div>
 
       {/* Grille des cartes */}
@@ -122,50 +123,50 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
           const prix = g.prixFinal[duree];
           const isRecommended = g.niveau === 5;
           const plafondAffiche = g.plafondParDuree ? g.plafondParDuree[duree] : g.plafondIntervention;
-          const niveauLabel = `${g.niveau} / 5`;
 
           return (
             <div
               key={i}
               className={`
                 relative rounded-2xl overflow-hidden shadow-xl border-2 flex flex-col
-                ${isRecommended
-                  ? `${style.borderClass} ring-4 ${style.ringClass}`
-                  : 'border-gray-200'}
+                ${isRecommended ? `${style.borderClass} ring-4 ${style.ringClass}` : 'border-gray-200'}
               `}
             >
-              {/* Badge recommande */}
+              {/* Badge recommandé */}
               {isRecommended && (
                 <div className="absolute top-3 right-3 z-10 bg-[#F5A623] text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-                  RECOMMANDE
+                  RECOMMANDÉ
                 </div>
               )}
 
-              {/* ── HEADER COLORE ── */}
+              {/* ── HEADER ── */}
               <div className={`bg-gradient-to-br ${style.headerGradient} px-5 pt-5 pb-4`}>
                 <div className="text-white/70 text-[10px] font-bold tracking-widest uppercase mb-2">
                   Gamme {style.label}
                 </div>
 
-                <div className="mb-1">
-                  <span className="text-white/80 text-sm font-bold tracking-wide">{niveauLabel}</span>
+                {/* Étoiles — remplace "X/5" */}
+                <div className="flex gap-0.5 mb-2">
+                  {Array.from({ length: 5 }, (_, k) => (
+                    <span key={k} className={`text-base ${k < g.niveau ? 'text-[#F5A623]' : 'text-white/25'}`}>★</span>
+                  ))}
                 </div>
 
                 <div className="text-white font-bold text-lg leading-tight mb-3">
                   {g.nomCommercial}
                 </div>
 
-                {/* Criteres eligibilite — nowrap pour tenir sur une ligne */}
-                <div className="bg-white/15 rounded-lg px-3 py-2 overflow-hidden">
+                {/* Éligibilité — nowrap, format compact */}
+                <div className="bg-white/15 rounded-lg px-3 py-1.5 overflow-hidden">
                   <span className="text-white/80 text-[11px] whitespace-nowrap block overflow-hidden text-ellipsis">
-                    Eligibilite : moins de {g.ageMaxAns} ans et moins de {g.kmMax.toLocaleString('fr-FR')} km
+                    &lt; {g.ageMaxAns} ans / {g.kmMax.toLocaleString('fr-FR')} km
                   </span>
                 </div>
 
                 {g.pondereApplique && (
                   <div className="mt-2 flex justify-center">
                     <span className="inline-flex bg-white/20 text-white text-xs px-2 py-1 rounded-full">
-                      Ponderee x1,5 appliquee
+                      Pondéré ×1,5 appliqué
                     </span>
                   </div>
                 )}
@@ -174,10 +175,10 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
               {/* ── CORPS ── */}
               <div className="bg-white px-5 pb-5 pt-4 flex flex-col flex-1 gap-4">
 
-                {/* Selecteur duree */}
+                {/* Sélecteur durée */}
                 <div>
                   <p className="text-[10px] text-gray-500 mb-1.5 font-bold uppercase tracking-widest">
-                    Duree du contrat
+                    Durée du contrat
                   </p>
                   <div className="flex rounded-lg border border-gray-200 overflow-hidden">
                     {(['6', '12', '24'] as Duree[]).map(d => (
@@ -207,25 +208,22 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
                   </div>
                 </div>
 
-                {/* Bloc plafond + pieces */}
+                {/* Plafond + Pièces couvertes */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-white`}>
-                    <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1">
-                      Plafond / intervention
+                  {/* Plafond — overflow contrôlé */}
+                  <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-white overflow-hidden`}>
+                    <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
+                      Plafond / sinistre
                     </div>
-                    <div className={`font-black text-base ${style.accentClass} leading-tight whitespace-nowrap`}>
-                      {plafondAffiche === 'VRADE'
-                        ? 'Plafond VRADE'
-                        : plafondAffiche.includes('€')
-                          ? `Jusqu\u2019a ${plafondAffiche}`
-                          : plafondAffiche}
+                    <div className={`font-black text-[13px] ${style.accentClass} leading-tight overflow-hidden text-ellipsis whitespace-nowrap`}>
+                      {plafondAffiche === 'VRADE' ? 'VRADE' : plafondAffiche}
                     </div>
                   </div>
                   <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-white`}>
                     <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1">
-                      Pieces couvertes
+                      Pièces couvertes
                     </div>
-                    <div className={`font-black text-base ${style.accentClass} leading-tight`}>
+                    <div className={`font-black text-[13px] ${style.accentClass} leading-tight`}>
                       {g.nombrePiecesCouvertes}
                     </div>
                   </div>
@@ -256,7 +254,7 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
                     text-sm font-bold hover:bg-[#F8F6FC] transition-colors
                   `}
                 >
-                  Telecharger les Conditions Generales (PDF)
+                  Télécharger les Conditions Générales (PDF)
                 </a>
               </div>
             </div>
@@ -264,7 +262,7 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
         })}
       </div>
 
-      {/* ── CTA DEVENIR PARTENAIRE ── */}
+      {/* ── CTA PARTENAIRE ── */}
       <div className="rounded-2xl border border-[#381893]/20 bg-white p-6 text-center shadow-sm">
         <p className="font-bold text-[#1A1A2E] text-base mb-1">Devenez partenaire Garantie Plus</p>
         <p className="text-gray-500 text-sm mb-4">Rejoignez notre réseau de garages partenaires et proposez nos garanties à vos clients.</p>
@@ -289,13 +287,13 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
 
         <div className="bg-white px-8 py-8">
           <div className="flex flex-wrap justify-center gap-3">
-            {AVANTAGES_PLUS.map((a, i) => (
+            {AVANTAGES_PLUS.map((a, idx) => (
               <span
-                key={i}
+                key={idx}
                 style={{
-                  background: i % 2 === 0 ? '#381893' : 'white',
-                  color: i % 2 === 0 ? 'white' : '#47b4e1',
-                  border: `2px solid ${i % 2 === 0 ? '#381893' : '#47b4e1'}`,
+                  background: idx % 2 === 0 ? '#381893' : 'white',
+                  color: idx % 2 === 0 ? 'white' : '#47b4e1',
+                  border: `2px solid ${idx % 2 === 0 ? '#381893' : '#47b4e1'}`,
                 }}
                 className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-bold shadow-sm"
               >
@@ -305,7 +303,7 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
           </div>
 
           <p className="text-center text-gray-600 text-sm mt-8 font-medium">
-            Une question ? Notre equipe vous rappelle sous 24h —{' '}
+            Une question ? Notre équipe vous rappelle sous 24h —{' '}
             <a href="mailto:contact@garantieplus.fr" className="text-[#381893] font-bold underline">
               contact@garantieplus.fr
             </a>

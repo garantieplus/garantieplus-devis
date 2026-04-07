@@ -172,7 +172,7 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
                 ['Marque',              devis.marque],
                 ['Modele',              devis.modele],
                 ['Mise en circulation', devis.date_mise_en_circulation],
-                ['Kilometrage',         fmtKm(devis.kilometrage)],
+                ['Kilométrage',         fmtKm(devis.kilometrage)],
               ])}
             </View>
             <View style={S.infoCard}>

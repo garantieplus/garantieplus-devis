@@ -164,7 +164,7 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
 
       {/* Garanties proposées */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="font-semibold text-gray-800 mb-4">Garanties proposees</h3>
+        <h3 className="font-semibold text-gray-800 mb-4">Garanties proposées</h3>
         {garanties.length === 0 ? (
           <p className="text-sm text-gray-400 italic">Aucune garantie éligible</p>
         ) : (
