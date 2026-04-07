@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Toaster, toast } from 'react-hot-toast';
 import StepVehicule from '@/components/devis/StepVehicule';
@@ -32,6 +32,23 @@ export default function Home() {
   const [form, setForm] = useState<DevisFormData>(INITIAL_FORM);
   const [garanties, setGaranties] = useState<GarantieProposee[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Lecture de l'état injecté par la page /demo (sessionStorage)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('garantieplus_demo');
+      if (!raw) return;
+      sessionStorage.removeItem('garantieplus_demo');
+      const { form: f, garanties: g, step: s } = JSON.parse(raw) as {
+        form?: Partial<DevisFormData>;
+        garanties?: typeof garanties;
+        step?: number;
+      };
+      if (f) setForm(prev => ({ ...prev, ...f }));
+      if (g) setGaranties(g);
+      if (s !== undefined) setStep(s);
+    } catch { /* ignore */ }
+  }, []);
 
   const updateForm = (updates: Partial<DevisFormData>) =>
     setForm(prev => ({ ...prev, ...updates }));
