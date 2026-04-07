@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import Footer from '@/components/Footer';
 
 interface FormState {
   nomGarage: string;
@@ -296,13 +297,7 @@ export default function InscriptionPage() {
         </div>
       </main>
 
-      <footer className="mt-8 py-6 border-t border-gray-100 bg-white">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <p className="text-xs text-gray-400">
-            Garantie Plus SAS — RCS Paris 943 193 037 — ORIAS n°25004236 — 130, rue de Courcelles – 75017 Paris
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

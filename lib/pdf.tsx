@@ -32,95 +32,105 @@ const AVANTAGES = [
   'Gestion sinistre directe',
 ];
 
-// ── Styles ────────────────────────────────────────────────────────────
-const S = StyleSheet.create({
-  page:    { backgroundColor: '#ffffff', fontFamily: 'Inter' },
+// ── Styles adaptatifs (construits à l'intérieur de la fonction) ────────
+function buildStyles(n: number) {
+  // n = nombre de garanties proposées
+  const fScale = n <= 1 ? 1.0 : n === 2 ? 0.9 : 0.8;
+  const pScale = n <= 1 ? 1.0 : n === 2 ? 0.8 : 0.65;
+  const fs = (base: number) => base * fScale;
+  const pd = (base: number) => base * pScale;
 
-  // Header
-  header:      { backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#E8E2F8', paddingVertical: 18, paddingHorizontal: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  logo:        { height: 70, objectFit: 'contain' },
-  headerRight: { alignItems: 'flex-end' },
-  headerLabel: { color: '#381893', fontSize: 8, letterSpacing: 1, opacity: 0.7 },
-  headerDate:  { color: '#381893', fontSize: 12, fontWeight: 700 },
+  return StyleSheet.create({
+    page: { backgroundColor: '#ffffff', fontFamily: 'Inter' },
 
-  // Body
-  body: { paddingTop: 16, paddingHorizontal: 40, paddingBottom: 58 },
+    // Header
+    header:      { backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#E8E2F8', paddingVertical: pd(18), paddingHorizontal: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    logo:        { height: 70, objectFit: 'contain' },
+    headerRight: { alignItems: 'flex-end' },
+    headerLabel: { color: '#381893', fontSize: fs(8), letterSpacing: 1, opacity: 0.7 },
+    headerDate:  { color: '#381893', fontSize: fs(12), fontWeight: 700 },
 
-  // Titre véhicule
-  vehicleTitle:    { fontSize: 19, fontWeight: 700, color: '#381893', marginBottom: 2 },
-  vehicleSubtitle: { fontSize: 10, color: '#888888', marginBottom: 12 },
+    // Body
+    body: { paddingTop: pd(16), paddingHorizontal: 40, paddingBottom: 58 },
 
-  // Bloc infos 2 colonnes
-  infoRow:   { flexDirection: 'row', marginBottom: 12, gap: 12 },
-  infoCard:  { flex: 1, backgroundColor: '#F8F6FC', borderWidth: 1, borderColor: '#E8E2F8', borderRadius: 8, paddingVertical: 9, paddingHorizontal: 12 },
-  cardTitle: { fontSize: 7.5, fontWeight: 700, textTransform: 'uppercase', color: '#7B5EA7', marginBottom: 5 },
-  infoLine:  { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#EDE8F8', paddingVertical: 3 },
-  infoLabel: { fontSize: 9, color: '#888888' },
-  infoValue: { fontSize: 9, fontWeight: 700, color: '#1A1A2E', maxWidth: '55%' },
+    // Titre véhicule
+    vehicleTitle:    { fontSize: fs(19), fontWeight: 700, color: '#381893', marginBottom: pd(2) },
+    vehicleSubtitle: { fontSize: fs(10), color: '#888888', marginBottom: pd(12) },
 
-  // Titre de section réutilisable
-  sectionTitle: { fontSize: 8.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: '#381893', borderBottomWidth: 1.5, borderBottomColor: '#381893', paddingBottom: 3, marginBottom: 7 },
+    // Bloc infos 2 colonnes
+    infoRow:   { flexDirection: 'row', marginBottom: pd(12), gap: pd(12) },
+    infoCard:  { flex: 1, backgroundColor: '#F8F6FC', borderWidth: 1, borderColor: '#E8E2F8', borderRadius: 8, paddingVertical: pd(9), paddingHorizontal: pd(12) },
+    cardTitle: { fontSize: fs(7.5), fontWeight: 700, textTransform: 'uppercase', color: '#7B5EA7', marginBottom: pd(5) },
+    infoLine:  { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: '#EDE8F8', paddingVertical: pd(3) },
+    infoLabel: { fontSize: fs(9), color: '#888888' },
+    infoValue: { fontSize: fs(9), fontWeight: 700, color: '#1A1A2E', maxWidth: '55%' },
 
-  // Cartes garanties
-  garantieCard:    { borderWidth: 1,   borderColor: '#E8E2F8', borderRadius: 8, marginBottom: 6, overflow: 'hidden' },
-  garantieCardRec: { borderWidth: 1.5, borderColor: '#381893', borderRadius: 8, marginBottom: 6, overflow: 'hidden' },
-  cardHeaderPlain: { backgroundColor: '#F8F6FC', paddingVertical: 7, paddingHorizontal: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardHeaderRec:   { backgroundColor: '#381893', paddingVertical: 7, paddingHorizontal: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardLeft:        { flexDirection: 'column' },
-  garantieName:    { fontSize: 11, fontWeight: 700, color: '#1A1A2E' },
-  garantieNameRec: { fontSize: 11, fontWeight: 700, color: 'white' },
-  starsRow:        { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
-  star:            { fontSize: 9, marginRight: 1 },
-  recBadge:        { backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.5)', borderRadius: 8, paddingVertical: 2, paddingHorizontal: 5, marginLeft: 6 },
-  recBadgeText:    { fontSize: 6.5, color: 'white', fontWeight: 700 },
-  plafondBadge:    { backgroundColor: '#EDE8F8', borderRadius: 10, paddingVertical: 4, paddingHorizontal: 7, alignItems: 'center' },
-  plafondBadgeRec: { backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.4)', borderRadius: 10, paddingVertical: 4, paddingHorizontal: 7, alignItems: 'center' },
-  plafondLabel:    { fontSize: 7, color: '#7B5EA7', opacity: 0.7, marginBottom: 1 },
-  plafondLabelRec: { fontSize: 7, color: 'rgba(255,255,255,0.7)', marginBottom: 1 },
-  plafondText:     { fontSize: 10, color: '#381893', fontWeight: 700 },
-  plafondTextRec:  { fontSize: 10, color: 'white',   fontWeight: 700 },
+    // Titre de section réutilisable
+    sectionTitle: { fontSize: fs(8.5), fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: '#381893', borderBottomWidth: 1.5, borderBottomColor: '#381893', paddingBottom: pd(3), marginBottom: pd(7) },
 
-  // Grille des prix
-  priceGrid:       { flexDirection: 'row' },
-  priceCol:        { flex: 1, alignItems: 'center', paddingVertical: 7, paddingHorizontal: 6, borderRightWidth: 0.5, borderRightColor: '#EDE8F8' },
-  priceCol12:      { flex: 1, alignItems: 'center', paddingVertical: 7, paddingHorizontal: 6, backgroundColor: '#F0ECF9', borderRightWidth: 0.5, borderRightColor: '#EDE8F8' },
-  priceDuration:   { fontSize: 7.5, color: '#888888', textTransform: 'uppercase', marginBottom: 2 },
-  priceDuration12: { fontSize: 7.5, color: '#381893', fontWeight: 700, textTransform: 'uppercase', marginBottom: 2 },
-  priceAmount:     { fontSize: 12, color: '#555555' },
-  priceAmount12:   { fontSize: 14, fontWeight: 700, color: '#381893' },
-  priceRecLabel:   { fontSize: 6.5, color: '#381893', fontWeight: 700, textTransform: 'uppercase', marginTop: 2 },
+    // Cartes garanties
+    garantieCard:    { borderWidth: 1,   borderColor: '#E8E2F8', borderRadius: 8, marginBottom: pd(6), overflow: 'hidden' },
+    garantieCardRec: { borderWidth: 1.5, borderColor: '#381893', borderRadius: 8, marginBottom: pd(6), overflow: 'hidden' },
+    cardHeaderPlain: { backgroundColor: '#F8F6FC', paddingVertical: pd(7), paddingHorizontal: pd(12), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    cardHeaderRec:   { backgroundColor: '#381893', paddingVertical: pd(7), paddingHorizontal: pd(12), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    cardLeft:        { flexDirection: 'column' },
+    garantieName:    { fontSize: fs(11), fontWeight: 700, color: '#1A1A2E' },
+    garantieNameRec: { fontSize: fs(11), fontWeight: 700, color: 'white' },
+    starsRow:        { flexDirection: 'row', alignItems: 'center', marginTop: pd(2) },
+    star:            { fontSize: fs(9), marginRight: pd(1) },
+    recBadge:        { backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.5)', borderRadius: 8, paddingVertical: pd(2), paddingHorizontal: pd(5), marginLeft: pd(6) },
+    recBadgeText:    { fontSize: fs(6.5), color: 'white', fontWeight: 700 },
+    plafondBadge:    { backgroundColor: '#EDE8F8', borderRadius: 10, paddingVertical: pd(4), paddingHorizontal: pd(7), alignItems: 'center' },
+    plafondBadgeRec: { backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.4)', borderRadius: 10, paddingVertical: pd(4), paddingHorizontal: pd(7), alignItems: 'center' },
+    plafondLabel:    { fontSize: fs(7), color: '#7B5EA7', opacity: 0.7, marginBottom: pd(1) },
+    plafondLabelRec: { fontSize: fs(7), color: 'rgba(255,255,255,0.7)', marginBottom: pd(1) },
+    plafondText:     { fontSize: fs(10), color: '#381893', fontWeight: 700 },
+    plafondTextRec:  { fontSize: fs(10), color: 'white',   fontWeight: 700 },
 
-  // Encadrés différenciants
-  encadresRow: { flexDirection: 'row', marginTop: 9, gap: 10 },
-  encadre:     { flex: 1, borderLeftWidth: 3, borderLeftColor: '#47b4e1', backgroundColor: '#F0F8FE', paddingVertical: 7, paddingHorizontal: 10, borderTopRightRadius: 6, borderBottomRightRadius: 6 },
-  encadreTitle: { fontSize: 8.5, fontWeight: 700, color: '#1A3A6B', marginBottom: 2 },
-  encadreText:  { fontSize: 8, color: '#444444', lineHeight: 1.4 },
+    // Grille des prix
+    priceGrid:       { flexDirection: 'row' },
+    priceCol:        { flex: 1, alignItems: 'center', paddingVertical: pd(7), paddingHorizontal: pd(6), borderRightWidth: 0.5, borderRightColor: '#EDE8F8' },
+    priceCol12:      { flex: 1, alignItems: 'center', paddingVertical: pd(7), paddingHorizontal: pd(6), backgroundColor: '#F0ECF9', borderRightWidth: 0.5, borderRightColor: '#EDE8F8' },
+    priceDuration:   { fontSize: fs(7.5), color: '#888888', textTransform: 'uppercase', marginBottom: pd(2) },
+    priceDuration12: { fontSize: fs(7.5), color: '#381893', fontWeight: 700, textTransform: 'uppercase', marginBottom: pd(2) },
+    priceAmount:     { fontSize: fs(12), color: '#555555' },
+    priceAmount12:   { fontSize: fs(14), fontWeight: 700, color: '#381893' },
+    priceRecLabel:   { fontSize: fs(6.5), color: '#381893', fontWeight: 700, textTransform: 'uppercase', marginTop: pd(2) },
 
-  // Avantages communs
-  avantagesCard: { backgroundColor: '#F8F6FC', borderWidth: 1, borderColor: '#E8E2F8', borderRadius: 8, paddingVertical: 7, paddingHorizontal: 12, marginTop: 9 },
-  avantagesGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 2 },
-  avantageItem:  { width: '50%', flexDirection: 'row', alignItems: 'center', marginTop: 5 },
-  checkCircle:   { width: 11, height: 11, backgroundColor: '#22C55E', borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginRight: 5 },
-  checkText:     { fontSize: 6.5, color: 'white', fontWeight: 700 },
-  avantageText:  { fontSize: 9, color: '#1A1A2E' },
+    // Encadrés différenciants
+    encadresRow: { flexDirection: 'row', marginTop: pd(9), gap: pd(10) },
+    encadre:     { flex: 1, borderLeftWidth: 3, borderLeftColor: '#47b4e1', backgroundColor: '#F0F8FE', paddingVertical: pd(7), paddingHorizontal: pd(10), borderTopRightRadius: 6, borderBottomRightRadius: 6 },
+    encadreTitle: { fontSize: fs(8.5), fontWeight: 700, color: '#1A3A6B', marginBottom: pd(2) },
+    encadreText:  { fontSize: fs(8), color: '#444444', lineHeight: 1.4 },
 
-  // Liens CG
-  cgSection: { marginTop: 9 },
-  cgLink:    { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EDE8F8', borderWidth: 1, borderColor: '#C5B8ED', borderRadius: 6, paddingVertical: 5, paddingHorizontal: 10, marginTop: 5 },
-  cgIcon:    { width: 14, height: 14, backgroundColor: '#381893', borderRadius: 3, alignItems: 'center', justifyContent: 'center', marginRight: 7 },
-  cgIconText: { fontSize: 8, color: 'white', fontWeight: 700 },
-  cgText:    { fontSize: 10, fontWeight: 700, color: '#381893' },
+    // Avantages communs
+    avantagesCard: { backgroundColor: '#F8F6FC', borderWidth: 1, borderColor: '#E8E2F8', borderRadius: 8, paddingVertical: pd(7), paddingHorizontal: pd(12), marginTop: pd(9) },
+    avantagesGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: pd(2) },
+    avantageItem:  { width: '50%', flexDirection: 'row', alignItems: 'center', marginTop: pd(5) },
+    checkCircle:   { width: pd(11), height: pd(11), backgroundColor: '#22C55E', borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginRight: pd(5) },
+    checkText:     { fontSize: fs(6.5), color: 'white', fontWeight: 700 },
+    avantageText:  { fontSize: fs(9), color: '#1A1A2E' },
 
-  // Footer
-  footer:        { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#1A1A2E', paddingVertical: 8, paddingHorizontal: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  footerText:    { fontSize: 7, color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 },
-  footerContact: { fontSize: 7, color: 'rgba(255,255,255,0.6)', textAlign: 'right', lineHeight: 1.4 },
-});
+    // Liens CG
+    cgSection: { marginTop: pd(9) },
+    cgLink:    { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EDE8F8', borderWidth: 1, borderColor: '#C5B8ED', borderRadius: 6, paddingVertical: pd(5), paddingHorizontal: pd(10), marginTop: pd(5) },
+    cgIcon:    { width: 14, height: 14, backgroundColor: '#381893', borderRadius: 3, alignItems: 'center', justifyContent: 'center', marginRight: pd(7) },
+    cgIconText: { fontSize: fs(8), color: 'white', fontWeight: 700 },
+    cgText:    { fontSize: fs(10), fontWeight: 700, color: '#381893' },
+
+    // Footer (fixe — position absolute)
+    footer:        { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#1A1A2E', paddingVertical: 8, paddingHorizontal: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    footerText:    { fontSize: 7, color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 },
+    footerContact: { fontSize: 7, color: 'rgba(255,255,255,0.6)', textAlign: 'right', lineHeight: 1.4 },
+  });
+}
 
 // ══════════════════════════════════════════════════════════════════════
 export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[]): Promise<Buffer> {
 
   const sorted = [...garanties].sort((a, b) => b.niveau - a.niveau);
+  const S = buildStyles(sorted.length);
+
   const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://devis.garantieplus.fr';
   const logoPath = path.join(process.cwd(), 'public', 'logo.png');
   const logoExists = fs.existsSync(logoPath);

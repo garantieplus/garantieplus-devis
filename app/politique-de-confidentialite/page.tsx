@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import Footer from '@/components/Footer';
 
 export const metadata = {
   title: 'Politique de confidentialité — Garantie Plus',
@@ -113,11 +114,9 @@ export default function PolitiqueConfidentialitePage() {
             </p>
           </Section>
 
-          <div className="mt-8 pt-6 border-t border-gray-100 text-xs text-gray-400 text-center">
-            Garantie Plus SAS — RCS Paris 943 193 037 — ORIAS n°25004236
-          </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

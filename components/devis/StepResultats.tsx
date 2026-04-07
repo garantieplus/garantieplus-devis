@@ -157,8 +157,8 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
                 </div>
 
                 {/* Éligibilité — nowrap, format compact */}
-                <div className="bg-white/15 rounded-lg px-3 py-1.5 overflow-hidden">
-                  <span className="text-white/80 text-[11px] whitespace-nowrap block overflow-hidden text-ellipsis">
+                <div className="bg-white/15 rounded-lg px-3 py-1.5 overflow-hidden text-center">
+                  <span className="text-white/80 text-[11px] whitespace-nowrap block overflow-hidden text-ellipsis text-center">
                     &lt; {g.ageMaxAns} ans / {g.kmMax.toLocaleString('fr-FR')} km
                   </span>
                 </div>
@@ -212,10 +212,10 @@ export default function StepResultats({ garanties, marque, modele, email, onRese
                 <div className="grid grid-cols-2 gap-3">
                   {/* Plafond — overflow contrôlé */}
                   <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-white overflow-hidden`}>
-                    <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap">
+                    <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1 whitespace-nowrap text-center">
                       Plafond / sinistre
                     </div>
-                    <div className={`font-black text-[13px] ${style.accentClass} leading-tight overflow-hidden text-ellipsis whitespace-nowrap`}>
+                    <div className={`font-black text-[13px] ${style.accentClass} leading-tight overflow-hidden text-ellipsis whitespace-nowrap text-center`}>
                       {plafondAffiche === 'VRADE' ? 'VRADE' : plafondAffiche}
                     </div>
                   </div>

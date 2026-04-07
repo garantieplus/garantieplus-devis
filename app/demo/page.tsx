@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DevisFormData, GarantieProposee } from '@/types';
+import Footer from '@/components/Footer';
 
 export const dynamic = 'force-dynamic';
 
@@ -260,6 +261,7 @@ export default function DemoPage() {
           Page interne — non indexée — usage dev/test uniquement
         </p>
       </main>
+      <Footer />
     </div>
   );
 }

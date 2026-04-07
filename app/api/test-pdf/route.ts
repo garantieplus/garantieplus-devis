@@ -66,6 +66,22 @@ export async function GET() {
         avantagesSpecifiques: [],
         fichierCG: '/cg/CG_Classique_4etoiles.pdf',
       },
+      {
+        gamme: 'classique',
+        niveau: 3,
+        nomCommercial: 'Garantie Classique 3 Etoiles',
+        etoilesAffichage: '⭐⭐⭐',
+        ageMaxAns: 15,
+        kmMax: 200000,
+        plafondIntervention: '5 000€',
+        nombrePiecesCouvertes: '+60 pièces',
+        prixBase: { '6': 199, '12': 279, '24': 499 },
+        prixFinal: { '6': 199, '12': 279, '24': 499 },
+        pondereApplique: false,
+        avantagesCommuns: [],
+        avantagesSpecifiques: [],
+        fichierCG: '/cg/CG_Classique_3etoiles.pdf',
+      },
     ];
 
     const pdfBuffer = await genererPDFDevis(devisTest, garantiesTest);

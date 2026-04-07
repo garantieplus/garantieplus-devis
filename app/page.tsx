@@ -5,6 +5,7 @@ import { Toaster, toast } from 'react-hot-toast';
 import StepVehicule from '@/components/devis/StepVehicule';
 import StepGarage from '@/components/devis/StepGarage';
 import StepResultats from '@/components/devis/StepResultats';
+import Footer from '@/components/Footer';
 import { DevisFormData, GarantieProposee } from '@/types';
 
 const INITIAL_FORM: DevisFormData = {
@@ -222,14 +223,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="mt-8 py-6 border-t border-gray-100 bg-white">
-        <div className="max-w-5xl mx-auto px-4 text-center">
-          <p className="text-xs text-gray-400">
-            Garantie Plus SAS — RCS Paris 943 193 037 — ORIAS n°25004236 — 130, rue de Courcelles – 75017 Paris
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
