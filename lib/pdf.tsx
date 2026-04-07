@@ -37,11 +37,11 @@ const S = StyleSheet.create({
   page:    { backgroundColor: '#ffffff', fontFamily: 'Inter' },
 
   // Header
-  header:      { backgroundColor: '#381893', paddingVertical: 18, paddingHorizontal: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  header:      { backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#E8E2F8', paddingVertical: 18, paddingHorizontal: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   logo:        { height: 36 },
   headerRight: { alignItems: 'flex-end' },
-  headerLabel: { color: 'white', fontSize: 8, letterSpacing: 1, opacity: 0.7 },
-  headerDate:  { color: 'white', fontSize: 12, fontWeight: 700 },
+  headerLabel: { color: '#381893', fontSize: 8, letterSpacing: 1, opacity: 0.7 },
+  headerDate:  { color: '#381893', fontSize: 12, fontWeight: 700 },
 
   // Body
   body: { paddingTop: 16, paddingHorizontal: 40, paddingBottom: 58 },
@@ -73,10 +73,12 @@ const S = StyleSheet.create({
   star:            { fontSize: 9, marginRight: 1 },
   recBadge:        { backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.5)', borderRadius: 8, paddingVertical: 2, paddingHorizontal: 5, marginLeft: 6 },
   recBadgeText:    { fontSize: 6.5, color: 'white', fontWeight: 700 },
-  plafondBadge:    { backgroundColor: '#EDE8F8', borderRadius: 10, paddingVertical: 2, paddingHorizontal: 7 },
-  plafondBadgeRec: { backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.4)', borderRadius: 10, paddingVertical: 2, paddingHorizontal: 7 },
-  plafondText:     { fontSize: 8.5, color: '#381893', fontWeight: 700 },
-  plafondTextRec:  { fontSize: 8.5, color: 'white',   fontWeight: 700 },
+  plafondBadge:    { backgroundColor: '#EDE8F8', borderRadius: 10, paddingVertical: 4, paddingHorizontal: 7, alignItems: 'center' },
+  plafondBadgeRec: { backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.4)', borderRadius: 10, paddingVertical: 4, paddingHorizontal: 7, alignItems: 'center' },
+  plafondLabel:    { fontSize: 7, color: '#7B5EA7', opacity: 0.7, marginBottom: 1 },
+  plafondLabelRec: { fontSize: 7, color: 'rgba(255,255,255,0.7)', marginBottom: 1 },
+  plafondText:     { fontSize: 10, color: '#381893', fontWeight: 700 },
+  plafondTextRec:  { fontSize: 10, color: 'white',   fontWeight: 700 },
 
   // Grille des prix
   priceGrid:       { flexDirection: 'row' },
@@ -146,7 +148,7 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
         <View style={S.header}>
           {logoExists
             ? <Image src={logoPath} style={S.logo} />
-            : <Text style={{ color: 'white', fontSize: 14, fontWeight: 700 }}>GARANTIE PLUS</Text>}
+            : <Text style={{ color: '#381893', fontSize: 14, fontWeight: 700 }}>GARANTIE PLUS</Text>}
           <View style={S.headerRight}>
             <Text style={S.headerLabel}>DEVIS PERSONNALISE</Text>
             <Text style={S.headerDate}>{dateStr}</Text>
@@ -211,6 +213,7 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
                     </View>
                   </View>
                   <View style={isRec ? S.plafondBadgeRec : S.plafondBadge}>
+                    <Text style={isRec ? S.plafondLabelRec : S.plafondLabel}>Plafond / Sinistre</Text>
                     <Text style={isRec ? S.plafondTextRec : S.plafondText}>
                       {g.plafondIntervention}
                     </Text>
