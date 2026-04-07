@@ -82,7 +82,7 @@ export default function Home() {
 
       {/* Header blanc */}
       <header className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between gap-4" style={{ minHeight: '80px' }}>
+        <div className="max-w-5xl mx-auto px-6 py-2 sm:py-5 flex items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Image
@@ -90,7 +90,7 @@ export default function Home() {
               alt="Garantie Plus"
               width={260}
               height={100}
-              className="object-contain w-[160px] sm:w-[220px] lg:w-[260px]"
+              className="object-contain h-10 sm:h-14 w-auto"
             />
           </div>
 
@@ -122,7 +122,7 @@ export default function Home() {
 
         {/* Bandeau titre */}
         <div className="bg-gradient-to-r from-[#381893] to-[#47b4e1]">
-          <div className="max-w-5xl mx-auto px-6 py-5 text-center">
+          <div className="max-w-5xl mx-auto px-6 py-3 sm:py-5 text-center">
             <h1 className="text-xl sm:text-2xl font-extrabold text-white">
               Obtenez votre devis de Garantie Panne Mécanique
             </h1>
@@ -175,6 +175,7 @@ export default function Home() {
       {/* Contenu */}
       <main className="max-w-5xl mx-auto px-4 py-8">
         <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8 ${step === 2 ? '' : 'max-w-2xl mx-auto'}`}>
+
           {step === 0 && (
             <StepVehicule data={form} onChange={updateForm} onNext={() => setStep(1)} />
           )}
@@ -196,6 +197,11 @@ export default function Home() {
             />
           )}
         </div>
+        {step < 2 && (
+          <p className="text-xs text-gray-400 text-center mt-3 max-w-2xl mx-auto">
+            Vos données sont traitées par Garantie Plus SAS conformément au RGPD. Pour exercer vos droits : contact@garantieplus.fr
+          </p>
+        )}
       </main>
 
       {/* Footer */}

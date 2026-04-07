@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -9,6 +9,15 @@ interface FormState {
   nomDirigeant: string;
   email: string;
   telephone: string;
+}
+
+const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+const MAX_SIZE = 5 * 1024 * 1024; // 5 Mo
+
+function validateFile(file: File): string | null {
+  if (!ALLOWED_TYPES.includes(file.type)) return 'Type non autorisé (PDF, JPG ou PNG uniquement)';
+  if (file.size > MAX_SIZE) return 'Fichier trop volumineux (max 5 Mo)';
+  return null;
 }
 
 function InscriptionForm() {
@@ -28,10 +37,23 @@ function InscriptionForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  // Honeypot — must remain empty
+  const [honeypot, setHoneypot] = useState('');
 
   const kbisRef = useRef<HTMLInputElement>(null);
   const cniRef  = useRef<HTMLInputElement>(null);
   const ribRef  = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (key: 'kbis' | 'cni' | 'rib', file: File | null) => {
+    if (!file) return;
+    const err = validateFile(file);
+    if (err) {
+      setErrors(prev => ({ ...prev, [key]: err }));
+      return;
+    }
+    setErrors(prev => { const { [key]: _, ...rest } = prev; return rest; });
+    setFiles(prev => ({ ...prev, [key]: file }));
+  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -58,6 +80,7 @@ function InscriptionForm() {
       fd.append('nomDirigeant', form.nomDirigeant);
       fd.append('email',        form.email);
       fd.append('telephone',    form.telephone);
+      fd.append('_website',     honeypot); // honeypot
       fd.append('kbis', files.kbis!);
       fd.append('cni',  files.cni!);
       fd.append('rib',  files.rib!);
@@ -100,6 +123,20 @@ function InscriptionForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
+      {/* Honeypot — ne pas toucher */}
+      <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        <label htmlFor="_website">Ne pas remplir</label>
+        <input
+          id="_website"
+          name="_website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={e => setHoneypot(e.target.value)}
+        />
+      </div>
+
       <div>
         <h2 className="text-2xl font-bold text-[#1A1A2E] mb-1">Informations du garage</h2>
         <p className="text-gray-500 text-sm">Ces informations nous permettront de créer votre compte partenaire</p>
@@ -135,13 +172,13 @@ function InscriptionForm() {
       {/* Documents */}
       <div>
         <h3 className="text-lg font-semibold text-[#1A1A2E] mb-1">Documents requis</h3>
-        <p className="text-gray-500 text-xs mb-4">PDF ou image (JPG, PNG) — max 10 Mo par fichier</p>
+        <p className="text-gray-500 text-xs mb-4">PDF ou image (JPG, PNG) — max 5 Mo par fichier</p>
 
         <div className="space-y-3">
           {([
             { key: 'kbis', label: 'Kbis du garage', hint: 'Extrait Kbis de moins de 3 mois', ref: kbisRef },
             { key: 'cni',  label: "Carte d'identité du dirigeant", hint: 'Recto-verso, en cours de validité', ref: cniRef },
-            { key: 'rib',  label: 'RIB', hint: 'Relevé d\'identité bancaire du garage', ref: ribRef },
+            { key: 'rib',  label: 'RIB', hint: "Relevé d'identité bancaire du garage", ref: ribRef },
           ] as const).map(({ key, label, hint, ref }) => (
             <div key={key} className={`border-2 rounded-xl p-4 transition-colors ${errors[key] ? 'border-red-300 bg-red-50' : files[key] ? 'border-green-300 bg-green-50' : 'border-dashed border-gray-200 hover:border-[#381893]/40'}`}>
               <div className="flex items-center justify-between gap-3">
@@ -159,10 +196,7 @@ function InscriptionForm() {
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
                     className="hidden"
-                    onChange={e => {
-                      const file = e.target.files?.[0] || null;
-                      setFiles(prev => ({ ...prev, [key]: file }));
-                    }}
+                    onChange={e => handleFileChange(key, e.target.files?.[0] || null)}
                   />
                   <button
                     type="button"
@@ -185,8 +219,12 @@ function InscriptionForm() {
       {/* RGPD */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <p className="text-xs text-gray-500 leading-relaxed">
-          Vos données sont collectées pour traiter votre demande de partenariat conformément au RGPD.
-          Contact : <a href="mailto:rgpd@garantieplus.fr" className="text-[#381893] underline">rgpd@garantieplus.fr</a>
+          Vos données sont collectées pour traiter votre demande de partenariat conformément au RGPD.{' '}
+          <a href="/politique-de-confidentialite" target="_blank" rel="noopener noreferrer" className="text-[#381893] underline">
+            Politique de confidentialité
+          </a>
+          {' '}— Contact :{' '}
+          <a href="mailto:contact@garantieplus.fr" className="text-[#381893] underline">contact@garantieplus.fr</a>
         </p>
       </div>
 
@@ -207,8 +245,12 @@ function InscriptionForm() {
             </svg>
             Envoi en cours...
           </>
-        ) : 'Envoyer ma demande d\'inscription →'}
+        ) : "Envoyer ma demande d'inscription →"}
       </button>
+
+      <p className="text-xs text-gray-400 text-center">
+        Vos données sont traitées par Garantie Plus SAS conformément au RGPD. Pour exercer vos droits : contact@garantieplus.fr
+      </p>
     </form>
   );
 }
@@ -218,15 +260,15 @@ export default function InscriptionPage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between gap-4" style={{ minHeight: '80px' }}>
-          <Image src="/logo.png" alt="Garantie Plus" width={260} height={100} className="object-contain w-[160px] sm:w-[220px] lg:w-[260px]" />
+        <div className="max-w-3xl mx-auto px-6 py-2 sm:py-5 flex items-center justify-between gap-4">
+          <Image src="/logo.png" alt="Garantie Plus" width={260} height={100} className="object-contain h-10 sm:h-14 w-auto" />
           <a href="https://www.garantieplus.fr" target="_blank" rel="noopener noreferrer"
             className="text-sm font-medium text-gray-500 hover:text-[#381893] transition-colors hidden sm:block">
             garantieplus.fr
           </a>
         </div>
         <div className="bg-gradient-to-r from-[#381893] to-[#47b4e1]">
-          <div className="max-w-3xl mx-auto px-6 py-5 text-center">
+          <div className="max-w-3xl mx-auto px-6 py-3 sm:py-5 text-center">
             <h1 className="text-xl sm:text-2xl font-extrabold text-white">Devenir Partenaire Garantie Plus</h1>
             <p className="text-white/80 text-sm mt-1">Proposez nos garanties à vos clients — Rejoignez notre réseau de garages</p>
           </div>
