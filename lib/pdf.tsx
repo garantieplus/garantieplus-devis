@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Document, Page, View, Text, Image, Link, Canvas,
+  Document, Page, View, Text, Image, Link,
   Font, StyleSheet, renderToBuffer,
 } from '@react-pdf/renderer';
 import path from 'path';
@@ -44,12 +44,12 @@ function buildStyles(n: number) {
   return StyleSheet.create({
     page: { backgroundColor: '#ffffff', fontFamily: 'Inter' },
 
-    // Header (fond dégradé via Canvas — pas de backgroundColor ici)
-    header:      { paddingVertical: pd(18), paddingHorizontal: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    // Header
+    header:      { backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#E8E2F8', paddingVertical: pd(18), paddingHorizontal: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     logo:        { height: 70, objectFit: 'contain' },
     headerRight: { alignItems: 'flex-end' },
-    headerLabel: { color: 'rgba(255,255,255,0.75)', fontSize: fs(8), letterSpacing: 1 },
-    headerDate:  { color: 'white', fontSize: fs(12), fontWeight: 700 },
+    headerLabel: { color: '#381893', fontSize: fs(8), letterSpacing: 1, opacity: 0.7 },
+    headerDate:  { color: '#381893', fontSize: fs(12), fontWeight: 700 },
 
     // Body
     body: { paddingTop: pd(16), paddingHorizontal: 40, paddingBottom: 58 },
@@ -73,7 +73,7 @@ function buildStyles(n: number) {
     garantieCard:    { borderWidth: 1,   borderColor: '#E8E2F8', borderRadius: 8, marginBottom: pd(6), overflow: 'hidden' },
     garantieCardRec: { borderWidth: 1.5, borderColor: '#381893', borderRadius: 8, marginBottom: pd(6), overflow: 'hidden' },
     cardHeaderPlain: { backgroundColor: '#F8F6FC', paddingVertical: pd(7), paddingHorizontal: pd(12), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    cardHeaderRec:   { paddingVertical: pd(7), paddingHorizontal: pd(12), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    cardHeaderRec:   { backgroundColor: '#381893', paddingVertical: pd(7), paddingHorizontal: pd(12), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     cardLeft:        { flexDirection: 'column' },
     garantieName:    { fontSize: fs(11), fontWeight: 700, color: '#1A1A2E' },
     garantieNameRec: { fontSize: fs(11), fontWeight: 700, color: 'white' },
@@ -157,19 +157,9 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
 
         {/* ── HEADER ────────────────────────────────────────────────── */}
         <View style={S.header}>
-          <Canvas
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-            paint={(painter, availableWidth, availableHeight) => {
-              const gradient = painter.linearGradient(0, 0, availableWidth, 0);
-              gradient.addColorStop(0, '#381893');
-              gradient.addColorStop(1, '#47b4e1');
-              painter.rect(0, 0, availableWidth, availableHeight).fill(gradient);
-              return null;
-            }}
-          />
           {logoExists
             ? <Image src={logoPath} style={S.logo} />
-            : <Text style={{ color: 'white', fontSize: 14, fontWeight: 700 }}>GARANTIE PLUS</Text>}
+            : <Text style={{ color: '#381893', fontSize: 14, fontWeight: 700 }}>GARANTIE PLUS</Text>}
           <View style={S.headerRight}>
             <Text style={S.headerLabel}>DEVIS PERSONNALISE</Text>
             <Text style={S.headerDate}>{dateStr}</Text>
@@ -223,18 +213,6 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
                   isRec ? S.cardHeaderRec : S.cardHeaderPlain,
                   isEco ? { backgroundColor: '#166534' } : {},
                 ]}>
-                  {isRec && !isEco && (
-                    <Canvas
-                      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-                      paint={(painter, availableWidth, availableHeight) => {
-                        const gradient = painter.linearGradient(0, 0, availableWidth, 0);
-                        gradient.addColorStop(0, '#381893');
-                        gradient.addColorStop(1, '#47b4e1');
-                        painter.rect(0, 0, availableWidth, availableHeight).fill(gradient);
-                        return null;
-                      }}
-                    />
-                  )}
                   <View style={S.cardLeft}>
                     <Text style={isRec ? S.garantieNameRec : S.garantieName}>
                       {g.nomCommercial}
