@@ -9,6 +9,7 @@ interface Props {
   marque: string;
   modele: string;
   email: string;
+  onReset?: () => void;
 }
 
 const getGammeStyle = (gamme: string) => {
@@ -71,7 +72,7 @@ const AVANTAGES_PLUS = [
   'Couverture Europeenne',
 ];
 
-export default function StepResultats({ garanties, marque, modele, email }: Props) {
+export default function StepResultats({ garanties, marque, modele, email, onReset }: Props) {
   const [durees, setDurees] = useState<Record<number, Duree>>(() =>
     Object.fromEntries(garanties.map((_, i) => [i, '12' as Duree]))
   );
@@ -95,11 +96,22 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-[#1A1A2E] mb-1">Vos garanties disponibles</h2>
-        <p className="text-gray-500 text-sm">
-          Resultats pour <strong>{marque} {modele}</strong> — Devis envoye a <strong>{email}</strong>
-        </p>
+      {/* En-tête avec bouton Refaire */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-2xl font-bold text-[#1A1A2E] mb-1">Vos garanties disponibles</h2>
+          <p className="text-gray-500 text-sm">
+            Resultats pour <strong>{marque} {modele}</strong> — Devis envoye a <strong>{email}</strong>
+          </p>
+        </div>
+        {onReset && (
+          <button
+            onClick={onReset}
+            className="inline-flex items-center gap-2 border border-gray-300 text-gray-600 text-sm px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0"
+          >
+            ← Refaire un devis
+          </button>
+        )}
       </div>
 
       {/* Grille des cartes */}
@@ -135,7 +147,6 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
                   Gamme {style.label}
                 </div>
 
-                {/* Niveau */}
                 <div className="mb-1">
                   <span className="text-white/80 text-sm font-bold tracking-wide">{niveauLabel}</span>
                 </div>
@@ -144,16 +155,18 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
                   {g.nomCommercial}
                 </div>
 
-                {/* Criteres eligibilite */}
-                <div className="bg-white/15 rounded-lg px-3 py-2">
-                  <span className="text-white/80 text-xs">
+                {/* Criteres eligibilite — nowrap pour tenir sur une ligne */}
+                <div className="bg-white/15 rounded-lg px-3 py-2 overflow-hidden">
+                  <span className="text-white/80 text-[11px] whitespace-nowrap block overflow-hidden text-ellipsis">
                     Eligibilite : moins de {g.ageMaxAns} ans et moins de {g.kmMax.toLocaleString('fr-FR')} km
                   </span>
                 </div>
 
                 {g.pondereApplique && (
-                  <div className="mt-2 inline-flex bg-white/20 text-white text-xs px-2 py-1 rounded-full">
-                    Ponderee x1,5 appliquee
+                  <div className="mt-2 flex justify-center">
+                    <span className="inline-flex bg-white/20 text-white text-xs px-2 py-1 rounded-full">
+                      Ponderee x1,5 appliquee
+                    </span>
                   </div>
                 )}
               </div>
@@ -184,8 +197,8 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
                   </div>
                 </div>
 
-                {/* Prix */}
-                <div className="text-center py-3 bg-gray-50 rounded-xl">
+                {/* Prix — centré */}
+                <div className="flex flex-col items-center text-center py-3 bg-gray-50 rounded-xl">
                   <div className="text-4xl sm:text-5xl font-black text-[#1A1A2E] tracking-tight">
                     {formatPrix(prix)}
                   </div>
@@ -194,17 +207,17 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
                   </div>
                 </div>
 
-                {/* Bloc plafond + pieces — mis en avant */}
+                {/* Bloc plafond + pieces */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className={`rounded-xl p-3 text-center border-2 ${style.borderClass} bg-white`}>
                     <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide mb-1">
                       Plafond / intervention
                     </div>
-                    <div className={`font-black text-base ${style.accentClass} leading-tight`}>
+                    <div className={`font-black text-base ${style.accentClass} leading-tight whitespace-nowrap`}>
                       {plafondAffiche === 'VRADE'
                         ? 'Plafond VRADE'
                         : plafondAffiche.includes('€')
-                          ? `Jusqu\'a ${plafondAffiche}`
+                          ? `Jusqu\u2019a ${plafondAffiche}`
                           : plafondAffiche}
                     </div>
                   </div>
@@ -218,7 +231,7 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
                   </div>
                 </div>
 
-                {/* Tableau 2 colonnes : couverture */}
+                {/* Organes couverts */}
                 <div className="flex-1">
                   <p className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">
                     Organes couverts
@@ -233,12 +246,12 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
                   </ul>
                 </div>
 
-                {/* Bouton CG */}
+                {/* Bouton CG — centré */}
                 <a
                   href={g.fichierCG}
                   download
                   className={`
-                    mt-auto flex items-center justify-center gap-2 w-full py-3 rounded-xl
+                    mt-auto flex items-center justify-center text-center gap-2 w-full py-3 rounded-xl
                     border-2 ${style.borderClass} ${style.accentClass}
                     text-sm font-bold hover:bg-[#F8F6FC] transition-colors
                   `}
@@ -265,7 +278,6 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
 
       {/* ── LES + DE GARANTIE PLUS ── */}
       <div className="rounded-2xl overflow-hidden shadow-md border border-[#381893]/20">
-        {/* Header section */}
         <div className="bg-gradient-to-r from-[#381893] to-[#47b4e1] px-8 py-6 text-center">
           <h3 className="text-xl font-black text-white tracking-wide mb-1">
             LES + DE GARANTIE PLUS
@@ -275,7 +287,6 @@ export default function StepResultats({ garanties, marque, modele, email }: Prop
           </p>
         </div>
 
-        {/* Badges */}
         <div className="bg-white px-8 py-8">
           <div className="flex flex-wrap justify-center gap-3">
             {AVANTAGES_PLUS.map((a, i) => (

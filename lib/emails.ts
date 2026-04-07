@@ -1,4 +1,6 @@
 import { Resend } from 'resend';
+import fs from 'fs';
+import path from 'path';
 import { GarantieProposee, Devis } from '@/types';
 import { genererPDFDevis } from '@/lib/pdf';
 
@@ -83,8 +85,8 @@ const buildGarantieCard = (g: GarantieProposee) => {
         </tr>
       </table>
 
-      <!-- Tableau des prix -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">
+      <!-- Tableau des prix — version desktop (masqué sur mobile) -->
+      <table class="prix-desktop" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">
         <thead>
           <tr style="background:${color};">
             <th style="padding:9px 14px;font-size:11px;color:rgba(255,255,255,0.75);font-weight:600;text-align:left;">Durée</th>
@@ -112,6 +114,21 @@ const buildGarantieCard = (g: GarantieProposee) => {
           </tr>
         </tbody>
       </table>
+
+      <!-- Prix mobile — lignes empilées (masqué sur desktop) -->
+      <div class="prix-mobile" style="display:none;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;">
+        <div style="background:#ffffff;padding:10px 14px;border-bottom:1px solid #F3F4F6;font-size:13px;color:#6B7280;">
+          6 mois &mdash; <span style="color:#374151;font-weight:600;">${formatPrix(g.prixFinal['6'])}</span>
+        </div>
+        <div style="background:#F9FAFB;padding:10px 14px;border-bottom:1px solid #F3F4F6;font-size:13px;color:#374151;font-weight:700;">
+          12 mois &mdash; <strong style="color:${color};font-size:15px;">${formatPrix(g.prixFinal['12'])}</strong>
+          <span style="font-size:10px;color:${color};background:rgba(56,24,147,0.08);padding:2px 6px;border-radius:8px;margin-left:6px;">recommandé</span>
+        </div>
+        <div style="background:#ffffff;padding:10px 14px;font-size:13px;color:#6B7280;">
+          24 mois &mdash; <span style="color:#374151;font-weight:600;">${formatPrix(g.prixFinal['24'])}</span>
+        </div>
+      </div>
+
       <p style="margin:6px 0 0;font-size:10px;color:#9CA3AF;text-align:right;">Prix TTC — Taxe d'assurance incluse</p>
 
     </div>
@@ -158,6 +175,12 @@ const emailGarageHTML = (devis: Devis, garanties: GarantieProposee[]) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Votre devis Garantie Plus</title>
+  <style>
+    @media only screen and (max-width:600px) {
+      .prix-desktop { display:none !important; }
+      .prix-mobile  { display:block !important; }
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;background:#F3F4F6;font-family:Arial,Helvetica,sans-serif;">
 
@@ -386,25 +409,50 @@ export async function envoyerEmailGarage({
     const safeFilename = `devis-garantieplus-${devis.marque}-${devis.modele}.pdf`
       .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, '');
 
+    // Lire la plaquette commerciale si elle existe
+    let plaquetteBuffer: Buffer | null = null;
+    try {
+      const plaquettePath = path.join(process.cwd(), 'public', 'plaquette.pdf');
+      if (fs.existsSync(plaquettePath)) {
+        plaquetteBuffer = fs.readFileSync(plaquettePath);
+      }
+    } catch (e) {
+      console.error('[Email] Erreur lecture plaquette:', e);
+    }
+
     const payload: Parameters<typeof resend.emails.send>[0] = {
       from: `Garantie Plus <${fromAddr}>`,
       to: toAddr,
       subject: isTestMode
-        ? `[TEST → ${devis.email}] Devis Garantie Plus — ${devis.marque} ${devis.modele}`
-        : `Votre devis Garantie Plus — ${devis.marque} ${devis.modele}`,
+        ? `[TEST → ${devis.email}] Votre Devis Garantie Plus — ${devis.marque} ${devis.modele}`
+        : `Votre Devis Garantie Plus — ${devis.marque} ${devis.modele}`,
       html: emailGarageHTML(devis, garanties),
     };
 
+    const attachments: NonNullable<typeof payload.attachments> = [];
+
     if (pdfBuffer) {
-      // Resend accepte base64 string ou Buffer — on passe le Buffer directement
-      payload.attachments = [{
+      attachments.push({
         filename: safeFilename,
         content: pdfBuffer,
         contentType: 'application/pdf',
-      }];
-      console.log('[Email] Pièce jointe ajoutée:', safeFilename);
+      });
+      console.log('[Email] PDF devis joint:', safeFilename);
     } else {
-      console.warn('[Email] PDF non généré — email envoyé sans pièce jointe');
+      console.warn('[Email] PDF non généré — email envoyé sans pièce jointe PDF');
+    }
+
+    if (plaquetteBuffer) {
+      attachments.push({
+        filename: 'Plaquette_Garantie_Plus.pdf',
+        content: plaquetteBuffer,
+        contentType: 'application/pdf',
+      });
+      console.log('[Email] Plaquette jointe');
+    }
+
+    if (attachments.length > 0) {
+      payload.attachments = attachments;
     }
 
     const { data, error } = await resend.emails.send(payload);

@@ -194,6 +194,7 @@ export default function Home() {
               marque={form.marque}
               modele={form.modele}
               email={form.email}
+              onReset={() => setStep(0)}
             />
           )}
         </div>
