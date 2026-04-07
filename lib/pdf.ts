@@ -1,9 +1,10 @@
-import { PDFDocument, StandardFonts, rgb, PageSizes } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, PageSizes, PDFName, PDFArray, PDFString } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 import fs from 'fs';
 import path from 'path';
 import { Devis, GarantieProposee } from '@/types';
 
-// ── Sanitise pour WinAnsi ─────────────────────────────────────────────────
+// ── Sanitise pour WinAnsi (fallback Helvetica) ────────────────────────
 function clean(str: string): string {
   return (str ?? '').replace(/[^\x20-\x7E\xA0-\xFF]/g, (c) => {
     const code = c.codePointAt(0) ?? 0;
@@ -24,57 +25,68 @@ const fmtPrix = (n: number) =>
 
 const fmtKm = (n: number) => clean(n.toLocaleString('fr-FR') + ' km');
 
-// ── Couleurs ──────────────────────────────────────────────────────────────
+// ── Couleurs ──────────────────────────────────────────────────────────
 const VIOLET  = rgb(0.220, 0.094, 0.576);  // #381893
 const BLUE    = rgb(0.278, 0.706, 0.882);  // #47b4e1
-const ECO     = rgb(0.180, 0.490, 0.310);  // #2E7D4F
-const LUXE    = rgb(0.102, 0.102, 0.180);  // #1A1A2E
-const LPREM   = rgb(0.051, 0.051, 0.102);  // #0D0D1A
 const DARK    = rgb(0.102, 0.102, 0.180);
 const GRAY    = rgb(0.431, 0.459, 0.514);
 const LGRAY   = rgb(0.580, 0.600, 0.635);
 const BORDER  = rgb(0.878, 0.886, 0.910);
 const WHITE   = rgb(1, 1, 1);
-const BGLIGHT = rgb(0.973, 0.973, 0.973);
+const VLIGHT  = rgb(0.961, 0.953, 0.988);  // violet très clair
 
 const gammeAccent = (g: string) => {
-  if (g === 'eco') return ECO;
-  if (g === 'luxe') return LUXE;
-  if (g === 'luxe_premium') return LPREM;
+  if (g === 'eco')          return rgb(0.180, 0.490, 0.310);
+  if (g === 'luxe')         return rgb(0.102, 0.102, 0.180);
+  if (g === 'luxe_premium') return rgb(0.051, 0.051, 0.102);
   return VIOLET;
 };
 
-// ══════════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════
 export async function genererPDFDevis(
   devis: Devis,
   garanties: GarantieProposee[]
 ): Promise<Buffer> {
 
   const doc = await PDFDocument.create();
+  doc.registerFontkit(fontkit);
   doc.setTitle(clean(`Devis - ${devis.marque} ${devis.modele}`));
   doc.setAuthor('Garantie Plus');
 
-  const Bold   = await doc.embedFont(StandardFonts.HelveticaBold);
-  const Reg    = await doc.embedFont(StandardFonts.Helvetica);
+  // ── Polices : Inter (typo du site) avec fallback Helvetica ───────────
+  let Bold: Awaited<ReturnType<typeof doc.embedFont>>;
+  let Reg:  Awaited<ReturnType<typeof doc.embedFont>>;
+  try {
+    const rp = path.join(process.cwd(), 'public', 'fonts', 'Inter-Regular.ttf');
+    const bp = path.join(process.cwd(), 'public', 'fonts', 'Inter-Bold.ttf');
+    Reg  = await doc.embedFont(fs.readFileSync(rp));
+    Bold = await doc.embedFont(fs.readFileSync(bp));
+  } catch {
+    Reg  = await doc.embedFont(StandardFonts.Helvetica);
+    Bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  }
 
   const PW = PageSizes.A4[0];   // 595
   const PH = PageSizes.A4[1];   // 842
-  const MG = 40;                // marges latérales
+  const MG = 40;
   const CW = PW - MG * 2;      // 515
 
-  // ── Tentative d'intégration du logo PNG ───────────────────────────────
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://devis.garantieplus.fr';
+
+  // ── Logo ──────────────────────────────────────────────────────────────
   let logoImg: Awaited<ReturnType<typeof doc.embedPng>> | null = null;
   try {
-    const lp = path.join(process.cwd(), 'public', 'logo.png');
-    logoImg   = await doc.embedPng(fs.readFileSync(lp));
+    logoImg = await doc.embedPng(fs.readFileSync(path.join(process.cwd(), 'public', 'logo.png')));
   } catch { logoImg = null; }
 
-  // ── Factory de page (fond blanc) ──────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════
+  // Factory de page
+  // ══════════════════════════════════════════════════════════════════════
   function newPage() {
     const pg = doc.addPage(PageSizes.A4);
     pg.drawRectangle({ x: 0, y: 0, width: PW, height: PH, color: WHITE });
 
-    /** Texte avec troncature optionnelle */
+    // Texte avec troncature
     function T(
       raw: string, x: number, yTop: number,
       o: { f?: typeof Bold; sz?: number; col?: ReturnType<typeof rgb>; maxW?: number } = {}
@@ -88,7 +100,7 @@ export async function genererPDFDevis(
       pg.drawText(t, { x, y: PH - yTop, font: f, size: sz, color: col });
     }
 
-    /** Rectangle (coordonnées depuis le haut) */
+    // Rectangle (yTop = depuis le haut)
     function R(
       x: number, yTop: number, w: number, h: number,
       o: { fill?: ReturnType<typeof rgb>; stroke?: ReturnType<typeof rgb>; sw?: number } = {}
@@ -100,30 +112,92 @@ export async function genererPDFDevis(
       });
     }
 
-    /** Ligne horizontale */
+    // Rectangle arrondi — fill + stroke simulés
+    function RR(
+      x: number, yTop: number, w: number, h: number, r: number,
+      o: { fill?: ReturnType<typeof rgb>; stroke?: ReturnType<typeof rgb>; sw?: number } = {}
+    ) {
+      const yb = PH - yTop - h;
+      if (o.fill) {
+        const f = o.fill;
+        pg.drawRectangle({ x: x + r,     y: yb,       width: w - 2 * r, height: h,       color: f });
+        pg.drawRectangle({ x,             y: yb + r,   width: w,         height: h - 2*r, color: f });
+        pg.drawEllipse({ x: x + r,       y: yb + r,   xScale: r, yScale: r, color: f });
+        pg.drawEllipse({ x: x + w - r,   y: yb + r,   xScale: r, yScale: r, color: f });
+        pg.drawEllipse({ x: x + r,       y: yb+h - r, xScale: r, yScale: r, color: f });
+        pg.drawEllipse({ x: x + w - r,   y: yb+h - r, xScale: r, yScale: r, color: f });
+      }
+      if (o.stroke) {
+        const s = o.stroke, sw = o.sw ?? 0.5;
+        pg.drawLine({ start: {x: x+r,   y: yb+h},   end: {x: x+w-r, y: yb+h},   thickness: sw, color: s });
+        pg.drawLine({ start: {x: x+r,   y: yb},     end: {x: x+w-r, y: yb},     thickness: sw, color: s });
+        pg.drawLine({ start: {x,         y: yb+r},   end: {x,         y: yb+h-r}, thickness: sw, color: s });
+        pg.drawLine({ start: {x: x+w,   y: yb+r},   end: {x: x+w,   y: yb+h-r}, thickness: sw, color: s });
+      }
+    }
+
+    // Ligne horizontale
     function HL(y: number, x1 = MG, x2 = MG + CW, col = BORDER) {
       pg.drawLine({ start: { x: x1, y: PH - y }, end: { x: x2, y: PH - y }, thickness: 0.5, color: col });
     }
 
-    /** Ligne verticale */
+    // Ligne verticale
     function VL(x: number, y1: number, y2: number, col = BORDER) {
       pg.drawLine({ start: { x, y: PH - y1 }, end: { x, y: PH - y2 }, thickness: 0.5, color: col });
     }
 
-    return { pg, T, R, HL, VL };
+    // Pill / badge arrondi — retourne la largeur
+    function Pill(
+      label: string, x: number, yTop: number, h: number,
+      bg: ReturnType<typeof rgb>, textCol: ReturnType<typeof rgb>, sz = 6.5
+    ): number {
+      const tw = Bold.widthOfTextAtSize(clean(label), sz);
+      const pw = tw + 14;
+      const r  = h / 2;
+      const yb = PH - yTop - h;
+      pg.drawEllipse({ x: x + r,      y: yb + r, xScale: r, yScale: r, color: bg });
+      pg.drawEllipse({ x: x + pw - r, y: yb + r, xScale: r, yScale: r, color: bg });
+      pg.drawRectangle({ x: x + r, y: yb, width: pw - 2 * r, height: h, color: bg });
+      pg.drawText(clean(label), { x: x + (pw - tw) / 2, y: yb + (h - sz) / 2 + 0.5, font: Bold, size: sz, color: textCol });
+      return pw;
+    }
+
+    return { pg, T, R, RR, HL, VL, Pill };
   }
 
   let cur = newPage();
   let y   = 0;
 
-  // Closures pointant toujours vers la page courante
-  const T  = (...a: Parameters<ReturnType<typeof newPage>['T']>)  => cur.T(...a);
-  const R  = (...a: Parameters<ReturnType<typeof newPage>['R']>)  => cur.R(...a);
-  const HL = (...a: Parameters<ReturnType<typeof newPage>['HL']>) => cur.HL(...a);
-  const VL = (...a: Parameters<ReturnType<typeof newPage>['VL']>) => cur.VL(...a);
+  // Closures qui lisent toujours `cur` au moment de l'appel
+  const T    = (...a: Parameters<ReturnType<typeof newPage>['T']>)    => cur.T(...a);
+  const R    = (...a: Parameters<ReturnType<typeof newPage>['R']>)    => cur.R(...a);
+  const RR   = (...a: Parameters<ReturnType<typeof newPage>['RR']>)   => cur.RR(...a);
+  const HL   = (...a: Parameters<ReturnType<typeof newPage>['HL']>)   => cur.HL(...a);
+  const VL   = (...a: Parameters<ReturnType<typeof newPage>['VL']>)   => cur.VL(...a);
+  const Pill = (...a: Parameters<ReturnType<typeof newPage>['Pill']>) => cur.Pill(...a);
 
+  // Annotation lien PDF
+  function addLink(yTop: number, lx: number, lw: number, lh: number, url: string) {
+    const yb = PH - yTop - lh;
+    const annot = doc.context.obj({
+      Type: 'Annot',
+      Subtype: 'Link',
+      Rect: [lx, yb, lx + lw, yb + lh],
+      Border: [0, 0, 0],
+      A: doc.context.obj({ Type: 'Action', S: 'URI', URI: PDFString.of(url) }),
+    });
+    const ref = doc.context.register(annot);
+    const existing = cur.pg.node.get(PDFName.of('Annots'));
+    if (existing instanceof PDFArray) {
+      existing.push(ref);
+    } else {
+      cur.pg.node.set(PDFName.of('Annots'), doc.context.obj([ref]));
+    }
+  }
+
+  // Footer bas de page
   function drawFooter() {
-    const fy = PH - 22;
+    const fy = 22;  // y depuis le bas de la page (PDF coords)
     cur.pg.drawLine({
       start: { x: MG, y: fy + 8 }, end: { x: PW - MG, y: fy + 8 },
       thickness: 0.5, color: BORDER,
@@ -143,142 +217,93 @@ export async function genererPDFDevis(
     }
   }
 
-  /** Rangée de carrés colorés pour les étoiles */
-  function drawStars(count: number, x: number, yTop: number, accent: ReturnType<typeof rgb>, sz = 8) {
-    for (let i = 0; i < 5; i++) {
-      R(x + i * (sz + 2), yTop, sz, sz, { fill: i < count ? accent : BORDER });
-    }
-  }
-
   // ══════════════════════════════════════════════════════════════════════
-  // HEADER : logo gauche | pill dégradé droite  (image 2)
+  // HEADER : logo gauche | pill dégradé droite
   // ══════════════════════════════════════════════════════════════════════
   const HDR_H = 84;
 
-  // Zone blanche totale
-  R(0, 0, PW, HDR_H, { fill: WHITE });
-
-  // ── Logo ──────────────────────────────────────────────────────────────
   if (logoImg) {
     const LW = 185;
-    const LH = LW * (749 / 1920);  // ratio naturel ≈ 72px
-    const LY = (HDR_H - LH) / 2;  // centré verticalement
+    const LH = LW * (749 / 1920);
+    const LY = (HDR_H - LH) / 2;
     cur.pg.drawImage(logoImg, { x: MG, y: PH - LY - LH, width: LW, height: LH });
   } else {
-    // Fallback texte si logo non disponible
-    T('GARANTIE', MG, 32, { f: Reg, sz: 18, col: GRAY });
-    T('PLUS', MG + Reg.widthOfTextAtSize('GARANTIE ', 18), 32, { f: Bold, sz: 18, col: DARK });
+    T('GARANTIE PLUS', MG, 36, { f: Bold, sz: 18, col: DARK });
   }
 
-  // ── Pill dégradé "DEVIS PERSONNALISE" ────────────────────────────────
-  // Forme : rectangle central + demi-cercles aux extrémités (stadium)
-  const PILL_W = 228;
-  const PILL_H = 50;
+  // Pill dégradé "DEVIS PERSONNALISE"
+  const PILL_W = 228, PILL_H = 50;
   const PILL_X = PW - MG - PILL_W;
-  const PILL_Y_TOP = (HDR_H - PILL_H) / 2;   // y depuis le haut
-  const PILL_R = PILL_H / 2;                  // rayon des extrémités
+  const PILL_Y = (HDR_H - PILL_H) / 2;
+  const PILL_R = PILL_H / 2;
 
-  // Demi-cercle gauche (VIOLET)
-  cur.pg.drawEllipse({
-    x: PILL_X + PILL_R,
-    y: PH - PILL_Y_TOP - PILL_R,
-    xScale: PILL_R,
-    yScale: PILL_R,
-    color: VIOLET,
-  });
+  cur.pg.drawEllipse({ x: PILL_X + PILL_R,         y: PH - PILL_Y - PILL_R, xScale: PILL_R, yScale: PILL_R, color: VIOLET });
+  cur.pg.drawEllipse({ x: PILL_X + PILL_W - PILL_R, y: PH - PILL_Y - PILL_R, xScale: PILL_R, yScale: PILL_R, color: BLUE });
 
-  // Demi-cercle droit (BLUE)
-  cur.pg.drawEllipse({
-    x: PILL_X + PILL_W - PILL_R,
-    y: PH - PILL_Y_TOP - PILL_R,
-    xScale: PILL_R,
-    yScale: PILL_R,
-    color: BLUE,
-  });
-
-  // Rectangle central avec dégradé simulé
-  const INNER_W = PILL_W - 2 * PILL_R;
-  const STEPS   = 50;
-  for (let i = 0; i <= STEPS; i++) {
-    const t = i / STEPS;
-    const c = rgb(
-      0.220 + t * (0.278 - 0.220),
-      0.094 + t * (0.706 - 0.094),
-      0.576 + t * (0.882 - 0.576),
-    );
-    R(PILL_X + PILL_R + i * INNER_W / STEPS, PILL_Y_TOP, INNER_W / STEPS + 1, PILL_H, { fill: c });
+  const IW = PILL_W - 2 * PILL_R;
+  for (let i = 0; i <= 50; i++) {
+    const t = i / 50;
+    R(PILL_X + PILL_R + i * IW / 50, PILL_Y, IW / 50 + 1, PILL_H, {
+      fill: rgb(0.220 + t*(0.278-0.220), 0.094 + t*(0.706-0.094), 0.576 + t*(0.882-0.576)),
+    });
   }
-
-  // Texte centré dans la pill
   const PT  = 'DEVIS PERSONNALISE';
   const PTW = Bold.widthOfTextAtSize(PT, 11);
-  T(PT, PILL_X + (PILL_W - PTW) / 2, PILL_Y_TOP + PILL_H / 2 + 4, { f: Bold, sz: 11, col: WHITE });
+  T(PT, PILL_X + (PILL_W - PTW) / 2, PILL_Y + PILL_H / 2 + 4, { f: Bold, sz: 11, col: WHITE });
 
-  // Ligne séparatrice sous le header
-  HL(HDR_H, 0, PW, BORDER);
-  y = HDR_H + 20;
+  // Pas de ligne séparatrice — espace direct
+  y = HDR_H + 38;
 
   // ══════════════════════════════════════════════════════════════════════
-  // TITRE  (image 1 : "Dacia sandrro" + date)
+  // TITRE
   // ══════════════════════════════════════════════════════════════════════
   T(`${devis.marque} ${devis.modele}`, MG, y, { f: Bold, sz: 20, col: DARK });
-  y += 20;
+  y += 23;
 
-  const dateObj  = new Date(devis.created_at);
-  const dateFmt  = clean(dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }));
-  const timeFmt  = clean(dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+  const dateObj = new Date(devis.created_at);
+  const dateFmt = clean(dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }));
+  const timeFmt = clean(dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
   T(`Devis du ${dateFmt} a ${timeFmt}`, MG, y + 12, { sz: 9, col: GRAY });
-  y += 30;
+  y += 32;
 
   // ══════════════════════════════════════════════════════════════════════
-  // CARDS VÉHICULE + GARAGE  (image 1)
+  // CARDS VEHICULE + GARAGE
   // ══════════════════════════════════════════════════════════════════════
-  ensure(140);
+  ensure(160);
 
   const HALF = (CW - 14) / 2;
-  const RCX  = MG + HALF + 14;   // x colonne garage
+  const RCX  = MG + HALF + 14;
 
-  // Helper : carte avec titre et lignes label|valeur
   function drawInfoCard(
-    xCard: number,
-    yCard: number,
-    title: string,
-    rows: [string, string][],
-    extraRows: string[]  // tags
+    xCard: number, yCard: number,
+    title: string, rows: [string, string][],
+    extraRows: string[]
   ) {
-    const RH     = 22;           // hauteur par ligne
-    const cardH  = rows.length * RH + 14 + (extraRows.length > 0 ? 32 : 0) + 6;
+    const RH    = 22;
+    const cardH = rows.length * RH + 18 + (extraRows.length > 0 ? 34 : 0) + 8;
 
-    R(xCard, yCard, HALF, cardH, { fill: WHITE, stroke: BORDER, sw: 0.8 });
+    RR(xCard, yCard, HALF, cardH, 6, { fill: WHITE, stroke: BORDER, sw: 0.8 });
+    T(title, xCard + 12, yCard + 16, { f: Bold, sz: 10, col: DARK });
+    HL(yCard + 23, xCard + 8, xCard + HALF - 8, BORDER);
 
-    // Titre de la carte
-    T(title, xCard + 10, yCard + 16, { f: Bold, sz: 10, col: DARK });
-    HL(yCard + 22, xCard + 6, xCard + HALF - 6, BORDER);
-
-    // Lignes label|valeur
     rows.forEach(([lbl, val], i) => {
-      const ry = yCard + 22 + 14 + i * RH;
-      T(lbl, xCard + 10, ry, { sz: 8, col: GRAY });
-
-      // Valeur right-aligned
+      const ry = yCard + 23 + 16 + i * RH;
+      T(lbl, xCard + 12, ry, { sz: 8, col: GRAY });
       const safeVal = clean(val);
-      const vW      = Math.min(Bold.widthOfTextAtSize(safeVal, 8.5), HALF * 0.6);
-      const vX      = xCard + HALF - 10 - vW;
-      T(safeVal, vX, ry, { f: Bold, sz: 8.5, col: DARK, maxW: HALF * 0.6 });
-
-      if (i < rows.length - 1) HL(ry + 8, xCard + 8, xCard + HALF - 8, rgb(0.94, 0.94, 0.97));
+      const maxVW   = HALF * 0.55;
+      const vW      = Math.min(Bold.widthOfTextAtSize(safeVal, 8.5), maxVW);
+      T(safeVal, xCard + HALF - 12 - vW, ry, { f: Bold, sz: 8.5, col: DARK, maxW: maxVW });
+      if (i < rows.length - 1) HL(ry + 8, xCard + 10, xCard + HALF - 10, rgb(0.94, 0.94, 0.97));
     });
 
-    // Tags caractéristiques
     if (extraRows.length > 0) {
-      const tagY = yCard + 22 + rows.length * RH + 14;
-      T('Caracteristiques', xCard + 10, tagY + 2, { sz: 7.5, col: GRAY });
-      let cx = xCard + 10;
+      const tagY = yCard + 23 + rows.length * RH + 16;
+      T('Caracteristiques', xCard + 12, tagY + 2, { sz: 7.5, col: GRAY });
+      let cx = xCard + 12;
       extraRows.forEach(tag => {
-        const tw = Bold.widthOfTextAtSize(tag, 6.5) + 10;
-        if (cx + tw > xCard + HALF - 8) return;
-        R(cx, tagY + 8, tw, 14, { fill: rgb(0.929, 0.910, 0.976) });
-        T(tag, cx + 5, tagY + 19, { f: Bold, sz: 6.5, col: VIOLET });
+        const tw = Bold.widthOfTextAtSize(clean(tag), 6.5) + 14;
+        if (cx + tw > xCard + HALF - 10) return;
+        Pill(tag, cx, tagY + 8, 16, VLIGHT, VIOLET, 6.5);
         cx += tw + 4;
       });
     }
@@ -297,10 +322,10 @@ export async function genererPDFDevis(
   ].filter(Boolean) as string[];
 
   const vhCardH = drawInfoCard(MG, y, 'Vehicule', [
-    ['Marque',          devis.marque],
-    ['Modele',          devis.modele],
-    ['Mise en circulation', devis.date_mise_en_circulation],
-    ['Kilometrage',     fmtKm(devis.kilometrage)],
+    ['Marque',               devis.marque],
+    ['Modele',               devis.modele],
+    ['Mise en circulation',  devis.date_mise_en_circulation],
+    ['Kilometrage',          fmtKm(devis.kilometrage)],
   ], tags);
 
   const grCardH = drawInfoCard(RCX, y, 'Garage', [
@@ -310,73 +335,121 @@ export async function genererPDFDevis(
     ['Telephone', devis.telephone],
   ], []);
 
-  y += Math.max(vhCardH, grCardH) + 20;
+  y += Math.max(vhCardH, grCardH) + 22;
 
   // ══════════════════════════════════════════════════════════════════════
-  // GARANTIES TABLE  (image 1)
+  // TABLE GARANTIES
   // ══════════════════════════════════════════════════════════════════════
   const sorted = [...garanties].sort((a, b) => b.niveau - a.niveau);
-  ensure(50 + sorted.length * 34);
 
-  // Titre
+  const ROW_H_REC = 48;   // hauteur ligne recommandée (nom + badge)
+  const ROW_H_STD = 34;   // hauteur lignes standard
+
+  const firstH   = sorted.length > 0 ? ROW_H_REC : 0;
+  const othersH  = sorted.length > 1 ? (sorted.length - 1) * ROW_H_STD : 0;
+  const tableH   = 6 + 22 + 4 + firstH + othersH + 14;
+
+  ensure(56 + tableH);
+
   T('Garanties proposees', MG, y + 14, { f: Bold, sz: 11, col: DARK });
-  y += 22;
+  y += 24;
 
-  // Card wrapper
-  const ROW_H  = 32;
-  const tableH = 36 + sorted.length * ROW_H + 10;
-  R(MG, y, CW, tableH, { fill: WHITE, stroke: BORDER, sw: 0.8 });
-
-  y += 6;
-
-  // Colonnes (mêmes proportions que l'admin)
-  const CG  = CW * 0.30;   // Garantie (étoiles)
-  const CP  = CW * 0.165;  // Plafond
-  const C6  = CW * 0.135;  // 6 mois
-  const C12 = CW * 0.165;  // 12 mois
-  const C24 = CW - CG - CP - C6 - C12;  // 24 mois
+  // Colonnes
+  const CG  = CW * 0.38;
+  const CP  = CW * 0.145;
+  const C6  = CW * 0.12;
+  const C12 = CW * 0.155;
+  const C24 = CW - CG - CP - C6 - C12;
 
   const XP  = MG + CG;
   const X6  = XP + CP;
   const X12 = X6 + C6;
   const X24 = X12 + C12;
 
-  // En-têtes colonnes
+  RR(MG, y, CW, tableH, 6, { fill: WHITE, stroke: BORDER, sw: 0.8 });
+  y += 6;
+
+  // En-têtes
   const thY = y + 14;
-  T('Garantie', MG + 10,  thY, { f: Bold, sz: 8,   col: GRAY });
-  T('Plafond',  XP + 8,   thY, { f: Bold, sz: 8,   col: GRAY });
-  T('6 mois',   X6 + 8,   thY, { f: Bold, sz: 8,   col: GRAY });
-  T('12 mois',  X12 + 8,  thY, { f: Bold, sz: 8,   col: GRAY });
-  T('24 mois',  X24 + 8,  thY, { f: Bold, sz: 8,   col: GRAY });
+  T('Garantie', MG + 14, thY, { f: Bold, sz: 7.5, col: GRAY });
+  T('Plafond',  XP + 8,  thY, { f: Bold, sz: 7.5, col: GRAY });
+  T('6 mois',   X6 + 8,  thY, { f: Bold, sz: 7.5, col: GRAY });
+  T('12 mois',  X12 + 8, thY, { f: Bold, sz: 7.5, col: GRAY });
+  T('24 mois',  X24 + 8, thY, { f: Bold, sz: 7.5, col: GRAY });
   y += 22;
   HL(y, MG + 6, MG + CW - 6, BORDER);
   y += 4;
 
-  // Lignes garanties
   sorted.forEach((g, i) => {
+    const isRec  = i === 0;
+    const rowH   = isRec ? ROW_H_REC : ROW_H_STD;
     const accent = gammeAccent(g.gamme);
-    const ry     = y + ROW_H / 2 + 4;
+    const midY   = y + rowH / 2 + 2;
 
-    // Étoiles colorées (gamme color)
-    drawStars(g.niveau, MG + 10, ry - 10, accent, 8);
+    // Fond violet clair pour la ligne recommandée
+    if (isRec) {
+      R(MG + 1, y, CW - 2, rowH, { fill: VLIGHT });
+    }
 
-    // Plafond (affichage direct comme dans l'admin)
-    T(clean(g.plafondIntervention), XP + 8, ry, { sz: 8.5, col: DARK });
+    // Barre d'accent gauche
+    R(MG + 1, y + 1, 3, rowH - 2, { fill: accent });
 
-    // Prix 6 mois
-    T(fmtPrix(g.prixFinal['6']), X6 + 8, ry, { sz: 8.5, col: DARK });
+    // Nom de la garantie
+    const nameY = isRec ? y + 13 : midY;
+    T(clean(g.nomCommercial), MG + 14, nameY, { f: Bold, sz: 8.5, col: DARK, maxW: CG - 22 });
 
-    // Prix 12 mois — violet bold (comme dans l'admin)
-    T(fmtPrix(g.prixFinal['12']), X12 + 8, ry, { f: Bold, sz: 8.5, col: VIOLET });
+    // Badge "RECOMMANDE" sous le nom pour la première
+    if (isRec) {
+      Pill('RECOMMANDE', MG + 14, y + 13 + 13, 14, VIOLET, WHITE, 6.5);
+    }
 
-    // Prix 24 mois
-    T(fmtPrix(g.prixFinal['24']), X24 + 8, ry, { sz: 8.5, col: DARK });
+    // Prix (centrés verticalement dans la rangée)
+    T(clean(g.plafondIntervention), XP + 8,  midY, { sz: 8.5, col: DARK });
+    T(fmtPrix(g.prixFinal['6']),   X6 + 8,  midY, { sz: 8.5, col: DARK });
+    T(fmtPrix(g.prixFinal['12']),  X12 + 8, midY, { f: Bold, sz: 8.5, col: VIOLET });
+    T(fmtPrix(g.prixFinal['24']),  X24 + 8, midY, { sz: 8.5, col: DARK });
 
-    y += ROW_H;
+    y += rowH;
     if (i < sorted.length - 1) HL(y, MG + 6, MG + CW - 6, rgb(0.94, 0.94, 0.97));
   });
 
   y += 14;
+
+  // ══════════════════════════════════════════════════════════════════════
+  // LIENS CONDITIONS GÉNÉRALES
+  // ══════════════════════════════════════════════════════════════════════
+  const cgItems = sorted.filter(g => g.fichierCG);
+  if (cgItems.length > 0) {
+    ensure(22 + cgItems.length * 20 + 10);
+    y += 6;
+
+    T('Telechargez les conditions generales :', MG, y + 11, { f: Bold, sz: 8.5, col: DARK });
+    y += 20;
+
+    cgItems.forEach(g => {
+      const label    = clean(g.nomCommercial);
+      const trackUrl = `${BASE_URL}/api/track-cg?d=${encodeURIComponent(devis.id)}&cg=${encodeURIComponent(g.fichierCG)}&nom=${encodeURIComponent(g.nomCommercial)}`;
+      const lsz      = 8;
+      const lw       = Reg.widthOfTextAtSize(label, lsz);
+
+      // Arrow + label in violet
+      T('↓  ' + label, MG, y + 11, { sz: lsz, col: VIOLET });
+
+      // Soulignement
+      cur.pg.drawLine({
+        start: { x: MG, y: PH - y - 11 - 1 },
+        end:   { x: MG + lw + Reg.widthOfTextAtSize('↓  ', lsz), y: PH - y - 11 - 1 },
+        thickness: 0.4, color: VIOLET,
+      });
+
+      // Annotation lien cliquable
+      addLink(y + 3, MG, lw + 30, 14, trackUrl);
+
+      y += 18;
+    });
+
+    y += 6;
+  }
 
   // ══════════════════════════════════════════════════════════════════════
   // FOOTER

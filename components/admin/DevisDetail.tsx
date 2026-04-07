@@ -1,10 +1,16 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 import StatusBadge from './StatusBadge';
 import { Devis, StatutDevis, GarantieProposee } from '@/types';
+
+interface CgClick {
+  garantie_nom: string;
+  clicked_at: string;
+}
 
 interface Props {
   devis: Devis;
@@ -28,6 +34,18 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
   const [resending, setResending] = useState(false);
   const [notes, setNotes] = useState(devis.notes_commerciales || '');
   const [commercial, setCommercial] = useState(devis.commercial_assigne || '');
+  const [cgClicks, setCgClicks] = useState<CgClick[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('cg_clicks')
+      .select('garantie_nom, clicked_at')
+      .eq('devis_id', devis.id)
+      .order('clicked_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setCgClicks(data as CgClick[]);
+      });
+  }, [devis.id]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -176,6 +194,28 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
           </div>
         )}
       </div>
+
+      {/* Téléchargements conditions générales */}
+      {cgClicks.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <h3 className="font-semibold text-gray-800 mb-4">
+            📄 Conditions générales téléchargées
+            <span className="ml-2 text-xs font-normal bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">
+              {cgClicks.length} clic{cgClicks.length > 1 ? 's' : ''}
+            </span>
+          </h3>
+          <div className="space-y-1.5 text-sm">
+            {cgClicks.map((c, i) => (
+              <div key={i} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+                <span className="text-gray-700 font-medium">{c.garantie_nom || '—'}</span>
+                <span className="text-gray-400 text-xs">
+                  {format(new Date(c.clicked_at), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Gestion commerciale */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
