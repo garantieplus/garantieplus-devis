@@ -400,12 +400,6 @@ export async function envoyerEmailGarage({
       console.error('[Email] Erreur génération PDF:', pdfErr);
     }
 
-    const fromAddr = process.env.EMAIL_FROM || 'onboarding@resend.dev';
-    const isTestMode = fromAddr === 'onboarding@resend.dev';
-    const toAddr = isTestMode
-      ? (process.env.EMAIL_ADMIN || 'contact@garantieplus.fr')
-      : devis.email;
-
     const safeFilename = `devis-garantieplus-${devis.marque}-${devis.modele}.pdf`
       .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, '');
 
@@ -421,11 +415,9 @@ export async function envoyerEmailGarage({
     }
 
     const payload: Parameters<typeof resend.emails.send>[0] = {
-      from: `Garantie Plus <${fromAddr}>`,
-      to: toAddr,
-      subject: isTestMode
-        ? `[TEST → ${devis.email}] Votre Devis Garantie Plus — ${devis.marque} ${devis.modele}`
-        : `Votre Devis Garantie Plus — ${devis.marque} ${devis.modele}`,
+      from: 'Garantie Plus <noreply@garantieplus.fr>',
+      to: devis.email,
+      subject: `Votre Devis Garantie Plus — ${devis.marque} ${devis.modele}`,
       html: emailGarageHTML(devis, garanties),
     };
 
@@ -479,9 +471,8 @@ export async function envoyerEmailInterne({
   garanties: GarantieProposee[];
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    const fromAddr = process.env.EMAIL_FROM || 'onboarding@resend.dev';
     const { data, error } = await resend.emails.send({
-      from: `Garantie Plus <${fromAddr}>`,
+      from: 'Garantie Plus <noreply@garantieplus.fr>',
       to: process.env.EMAIL_ADMIN || 'contact@garantieplus.fr',
       subject: `Nouveau devis — ${devis.nom_garage} — ${devis.marque} ${devis.modele}`,
       html: emailInterneHTML(devis, garanties),

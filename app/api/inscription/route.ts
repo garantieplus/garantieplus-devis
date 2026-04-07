@@ -272,7 +272,6 @@ export async function POST(req: NextRequest) {
     if (dbError) console.error('[Inscription] Supabase insert error:', dbError);
 
     // ── 9. Email admin ────────────────────────────────────────
-    const fromAddr   = process.env.EMAIL_FROM  || 'onboarding@resend.dev';
     const adminEmail = process.env.EMAIL_ADMIN || 'contact@garantieplus.fr';
 
     const blockedBanner = blockedFiles.length > 0
@@ -311,7 +310,7 @@ export async function POST(req: NextRequest) {
 </body></html>`;
 
     await resend.emails.send({
-      from:    `Garantie Plus <${fromAddr}>`,
+      from:    'Garantie Plus <noreply@garantieplus.fr>',
       to:      adminEmail,
       subject: `🆕 Nouvelle inscription partenaire — ${nomGarage}`,
       html,
@@ -323,8 +322,8 @@ export async function POST(req: NextRequest) {
 
     // ── 10. Email de confirmation ─────────────────────────────
     await resend.emails.send({
-      from:    `Garantie Plus <${fromAddr}>`,
-      to:      fromAddr === 'onboarding@resend.dev' ? adminEmail : email,
+      from:    'Garantie Plus <noreply@garantieplus.fr>',
+      to:      email,
       subject: 'Votre demande de partenariat Garantie Plus a bien été reçue',
       html: `<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"></head>
