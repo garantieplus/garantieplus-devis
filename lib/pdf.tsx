@@ -38,7 +38,7 @@ const S = StyleSheet.create({
 
   // Header
   header:      { backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#E8E2F8', paddingVertical: 18, paddingHorizontal: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  logo:        { height: 36 },
+  logo:        { height: 70, objectFit: 'contain' },
   headerRight: { alignItems: 'flex-end' },
   headerLabel: { color: '#381893', fontSize: 8, letterSpacing: 1, opacity: 0.7 },
   headerDate:  { color: '#381893', fontSize: 12, fontWeight: 700 },
