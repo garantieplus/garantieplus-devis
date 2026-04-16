@@ -9,6 +9,7 @@ import { Devis, StatutDevis, GarantieProposee } from '@/types';
 interface Props {
   devis: Devis[];
   onStatutChange: (id: string, statut: StatutDevis) => void;
+  onDelete?: (ids: string[]) => void;
 }
 
 const STATUTS: { value: StatutDevis | 'tous'; label: string }[] = [
@@ -18,6 +19,7 @@ const STATUTS: { value: StatutDevis | 'tous'; label: string }[] = [
   { value: 'rappele', label: '🟠 Rappelé' },
   { value: 'converti', label: '🟢 Converti' },
   { value: 'perdu', label: '🔴 Perdu' },
+  { value: 'archive', label: '⬜ Archivé' },
 ];
 
 const getGammeBadge = (gamme: string) => {
@@ -40,13 +42,16 @@ const getGammeBadge = (gamme: string) => {
   );
 };
 
-export default function DevisTable({ devis, onStatutChange }: Props) {
+export default function DevisTable({ devis, onStatutChange, onDelete }: Props) {
   const [filtreStatut, setFiltreStatut] = useState<StatutDevis | 'tous'>('tous');
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   const filtered = devis.filter(d => {
+    if (filtreStatut === 'tous' && d.statut === 'archive') return false;
     if (filtreStatut !== 'tous' && d.statut !== filtreStatut) return false;
     if (search) {
       const q = search.toLowerCase();
@@ -62,6 +67,43 @@ export default function DevisTable({ devis, onStatutChange }: Props) {
     if (dateTo && d.created_at > dateTo + 'T23:59:59') return false;
     return true;
   });
+
+  const allSelected = filtered.length > 0 && filtered.every(d => selected.has(d.id));
+  const someSelected = filtered.some(d => selected.has(d.id));
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelected(prev => {
+        const next = new Set(prev);
+        filtered.forEach(d => next.delete(d.id));
+        return next;
+      });
+    } else {
+      setSelected(prev => {
+        const next = new Set(prev);
+        filtered.forEach(d => next.add(d.id));
+        return next;
+      });
+    }
+  };
+
+  const toggleOne = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selected);
+    if (!window.confirm(`Supprimer définitivement ${ids.length} devis ? Cette action est irréversible.`)) return;
+    setDeleting(true);
+    await Promise.all(ids.map(id => fetch(`/api/devis/${id}`, { method: 'DELETE' })));
+    setSelected(new Set());
+    onDelete?.(ids);
+    setDeleting(false);
+  };
 
   const exportCSV = () => {
     const headers = ['Date', 'Garage', 'Contact', 'Email', 'Téléphone', 'Marque', 'Modèle', 'Km', 'Garanties', 'Statut'];
@@ -130,6 +172,30 @@ export default function DevisTable({ devis, onStatutChange }: Props) {
         </button>
       </div>
 
+      {/* Barre de suppression en masse */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+          <span className="text-sm text-red-700 font-medium">
+            {selected.size} devis sélectionné{selected.size > 1 ? 's' : ''}
+          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setSelected(new Set())}
+              className="text-sm text-red-400 hover:text-red-600"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              disabled={deleting}
+              className="px-4 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
+            >
+              {deleting ? 'Suppression...' : 'Supprimer la sélection'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <p className="text-sm text-gray-500">{filtered.length} devis</p>
 
       {/* Tableau */}
@@ -137,6 +203,15 @@ export default function DevisTable({ devis, onStatutChange }: Props) {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              <th className="px-4 py-3 w-8">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
+                  onChange={toggleAll}
+                  className="rounded border-gray-300 cursor-pointer"
+                />
+              </th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">Date</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">Garage & Contact</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">Véhicule</th>
@@ -148,10 +223,18 @@ export default function DevisTable({ devis, onStatutChange }: Props) {
           <tbody className="divide-y divide-gray-100">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-gray-400">Aucun devis trouvé</td>
+                <td colSpan={7} className="text-center py-12 text-gray-400">Aucun devis trouvé</td>
               </tr>
             ) : filtered.map(d => (
-              <tr key={d.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={d.id} className={`hover:bg-gray-50 transition-colors ${selected.has(d.id) ? 'bg-violet-50' : ''}`}>
+                <td className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(d.id)}
+                    onChange={() => toggleOne(d.id)}
+                    className="rounded border-gray-300 cursor-pointer"
+                  />
+                </td>
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
                   {format(new Date(d.created_at), 'dd MMM yyyy', { locale: fr })}<br />
                   <span className="text-gray-400">{format(new Date(d.created_at), 'HH:mm')}</span>

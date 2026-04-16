@@ -310,7 +310,7 @@ export async function POST(req: NextRequest) {
 </body></html>`;
 
     await resend.emails.send({
-      from:    'Garantie Plus <noreply@garantieplus.fr>',
+      from:    'Garantie Plus <devis@garantieplus.fr>',
       to:      adminEmail,
       subject: `🆕 Nouvelle inscription partenaire — ${nomGarage}`,
       html,
@@ -322,7 +322,8 @@ export async function POST(req: NextRequest) {
 
     // ── 10. Email de confirmation ─────────────────────────────
     await resend.emails.send({
-      from:    'Garantie Plus <noreply@garantieplus.fr>',
+      from:    'Garantie Plus <devis@garantieplus.fr>',
+      replyTo: 'devis@garantieplus.fr',
       to:      email,
       subject: 'Votre demande de partenariat Garantie Plus a bien été reçue',
       html: `<!DOCTYPE html>

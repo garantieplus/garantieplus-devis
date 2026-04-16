@@ -45,6 +45,11 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDelete = (ids: string[]) => {
+    setDevis(prev => prev.filter(d => !ids.includes(d.id)));
+    toast.success(`${ids.length} devis supprimé${ids.length > 1 ? 's' : ''}`);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/admin');
@@ -130,7 +135,7 @@ export default function AdminDashboard() {
               Chargement...
             </div>
           ) : (
-            <DevisTable devis={devis} onStatutChange={handleStatutChange} />
+            <DevisTable devis={devis} onStatutChange={handleStatutChange} onDelete={handleDelete} />
           )}
         </div>
       </main>

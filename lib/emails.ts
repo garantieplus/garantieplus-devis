@@ -211,10 +211,25 @@ const emailGarageHTML = (devis: Devis, garanties: GarantieProposee[]) => {
   <div style="background:white;border:1px solid #E5E7EB;border-top:none;padding:28px;">
 
     <p style="margin:0 0 4px;color:#1A1A2E;font-size:15px;font-weight:600;">Bonjour ${devis.nom_contact},</p>
+    <p style="font-weight: bold; font-size: 15px; margin-bottom: 16px;">
+      📞 <strong>01 84 18 08 08</strong> &nbsp;|&nbsp;
+      ✉ <strong>contact@garantieplus.fr</strong>
+    </p>
     <p style="margin:0 0 20px;color:#6B7280;font-size:13px;line-height:1.6;">
       Suite à votre demande, voici les Garanties Panne Mécanique disponibles pour votre véhicule.
       Le <strong>devis complet est joint en PDF</strong> à cet email. Tous les tarifs sont en <strong>TTC, taxe d'assurance incluse</strong>.
     </p>
+
+    <div style="margin: 16px 0; padding: 12px 16px; background-color: #F8F6FC; border-radius: 8px; border-left: 3px solid #381893;">
+      <p style="margin: 0; font-size: 14px; color: #381893; font-weight: 600;">
+        Pour nous contacter :
+      </p>
+      <p style="margin: 6px 0 0; font-size: 14px; color: #1A1A2E;">
+        📞 <strong>01 84 18 08 08</strong>
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        ✉ <strong>contact@garantieplus.fr</strong>
+      </p>
+    </div>
 
     <!-- CTA Partenaire — en haut du body -->
     <div style="text-align:center;margin-bottom:24px;padding:18px 20px;border:1px solid #E5E7EB;border-radius:12px;background:#F9FAFB;">
@@ -334,6 +349,11 @@ const emailGarageHTML = (devis: Devis, garanties: GarantieProposee[]) => {
       </p>
     </div>
 
+  <p style="font-weight: bold; font-size: 14px; margin-top: 20px;">
+    📞 <strong>01 84 18 08 08</strong><br>
+    ✉ <strong>contact@garantieplus.fr</strong>
+  </p>
+
   </div>
 
   <!-- ══ FOOTER ══ -->
@@ -415,7 +435,8 @@ export async function envoyerEmailGarage({
     }
 
     const payload: Parameters<typeof resend.emails.send>[0] = {
-      from: 'Garantie Plus <noreply@garantieplus.fr>',
+      from: 'Garantie Plus <devis@garantieplus.fr>',
+      replyTo: 'devis@garantieplus.fr',
       to: devis.email,
       subject: `Votre Devis Garantie Plus — ${devis.marque} ${devis.modele}`,
       html: emailGarageHTML(devis, garanties),
@@ -472,7 +493,7 @@ export async function envoyerEmailInterne({
 }): Promise<{ success: boolean; error?: string }> {
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Garantie Plus <noreply@garantieplus.fr>',
+      from: 'Garantie Plus <devis@garantieplus.fr>',
       to: process.env.EMAIL_ADMIN || 'contact@garantieplus.fr',
       subject: `Nouveau devis — ${devis.nom_garage} — ${devis.marque} ${devis.modele}`,
       html: emailInterneHTML(devis, garanties),

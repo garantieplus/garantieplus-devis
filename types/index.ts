@@ -68,11 +68,11 @@ export interface Devis {
   email: string;
   telephone: string;
   garanties_proposees: GarantieProposee[];
-  statut: 'nouveau' | 'a_rappeler' | 'rappele' | 'converti' | 'perdu';
+  statut: StatutDevis;
   notes_commerciales: string | null;
   commercial_assigne: string | null;
   ip_address: string | null;
   user_agent: string | null;
 }
 
-export type StatutDevis = 'nouveau' | 'a_rappeler' | 'rappele' | 'converti' | 'perdu';
+export type StatutDevis = 'nouveau' | 'a_rappeler' | 'rappele' | 'converti' | 'perdu' | 'archive';

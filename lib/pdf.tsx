@@ -166,6 +166,13 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
           </View>
         </View>
 
+        {/* ── CONTACT BADGE ─────────────────────────────────────────── */}
+        <View style={{ alignSelf: 'center', marginVertical: 10, backgroundColor: '#EDE8F8', borderRadius: 20, paddingHorizontal: 20, paddingVertical: 8 }}>
+          <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#381893' }}>
+            01 84 18 08 08   |   contact@garantieplus.fr
+          </Text>
+        </View>
+
         {/* ── BODY ──────────────────────────────────────────────────── */}
         <View style={S.body}>
 

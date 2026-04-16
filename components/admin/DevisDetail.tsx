@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
@@ -23,15 +24,19 @@ const STATUTS: { value: StatutDevis; label: string }[] = [
   { value: 'rappele', label: 'Rappele' },
   { value: 'converti', label: 'Converti' },
   { value: 'perdu', label: 'Perdu' },
+  { value: 'archive', label: 'Archivé' },
 ];
 
 const formatPrix = (n: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
 export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
+  const router = useRouter();
   const [devis, setDevis] = useState(initialDevis);
   const [saving, setSaving] = useState(false);
   const [resending, setResending] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [notes, setNotes] = useState(devis.notes_commerciales || '');
   const [commercial, setCommercial] = useState(devis.commercial_assigne || '');
   const [cgClicks, setCgClicks] = useState<CgClick[]>([]);
@@ -86,6 +91,20 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
       toast.error("Erreur lors de l'envoi");
     } finally {
       setResending(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/devis/${devis.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      toast.success('Devis supprimé');
+      router.push('/admin/dashboard');
+    } catch {
+      toast.error('Erreur lors de la suppression');
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -262,6 +281,44 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
           </button>
         </div>
       </div>
+
+      {/* Supprimer le devis */}
+      <div className="pt-2">
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="w-full px-4 py-2.5 text-sm bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 font-medium transition-colors"
+        >
+          Supprimer le devis
+        </button>
+      </div>
+
+      {/* Modal de confirmation */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">Supprimer ce devis ?</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Êtes-vous sûr de vouloir supprimer ce devis ? Cette action est irréversible.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
+              >
+                {deleting ? 'Suppression...' : 'Supprimer définitivement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

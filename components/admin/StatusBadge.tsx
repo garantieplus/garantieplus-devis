@@ -6,6 +6,7 @@ const STATUT_CONFIG: Record<StatutDevis, { label: string; color: string; dot: st
   rappele:    { label: 'Rappelé',    color: 'bg-orange-100 text-orange-700 border-orange-200', dot: 'bg-orange-500' },
   converti:   { label: 'Converti',   color: 'bg-green-100 text-green-700 border-green-200',   dot: 'bg-green-500' },
   perdu:      { label: 'Perdu',      color: 'bg-red-100 text-red-700 border-red-200',          dot: 'bg-red-500' },
+  archive:    { label: 'Archivé',    color: 'bg-gray-100 text-gray-500 border-gray-200',       dot: 'bg-gray-400' },
 };
 
 interface Props {
