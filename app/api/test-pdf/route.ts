@@ -1,19 +1,47 @@
 import { NextResponse } from 'next/server';
 import { genererPDFDevis } from '@/lib/pdf';
-import { Devis, GarantieProposee } from '@/types';
+import { calculerOffres, faitsDepuisVehicule } from '@/lib/gvo/offres';
+import type { Devis, VehiculeInput } from '@/types';
 
-// Route de test uniquement — génère un PDF de démonstration téléchargeable
-// Accès : GET /api/test-pdf
+// Route de test uniquement — génère un PDF de démonstration téléchargeable.
+// Accès : GET /api/test-pdf (désactivée en production).
 export async function GET() {
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_PDF) {
+    return NextResponse.json({ error: 'Non disponible' }, { status: 404 });
+  }
   try {
-    const devisTest: Devis = {
-      id: 'test-000',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+    const vehicule: VehiculeInput = {
+      plaque: 'AB-123-CD',
+      vin: 'VF3LCYHZPJS123456',
       marque: 'Peugeot',
       modele: '308',
-      date_mise_en_circulation: '2021-06-01',
+      version: '1.2 PureTech 130 Allure',
+      typeMine: '',
+      dateMiseEnCirculation: '2021-06-01',
       kilometrage: 65000,
+      energie: 'essence',
+      valeurNeufEuros: 28500,
+      puissanceFiscale: 7,
+      is4x4: false,
+      sourceVehicule: 'plaque',
+    };
+    const garanties = calculerOffres(faitsDepuisVehicule(vehicule));
+    const devisTest: Devis = {
+      id: '00000000-0000-0000-0000-000000000000',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      marque: vehicule.marque,
+      modele: vehicule.modele,
+      version: vehicule.version,
+      plaque: vehicule.plaque,
+      vin: vehicule.vin,
+      type_mine: null,
+      date_mise_en_circulation: vehicule.dateMiseEnCirculation,
+      kilometrage: vehicule.kilometrage,
+      energie: vehicule.energie,
+      valeur_neuf_euros: vehicule.valeurNeufEuros,
+      puissance_fiscale: vehicule.puissanceFiscale,
+      source_vehicule: 'plaque',
       is_4x4: false,
       is_plus_2t3: false,
       is_plus_14cv: false,
@@ -25,7 +53,7 @@ export async function GET() {
       nom_garage: 'Garage Dupont Auto',
       email: 'jean@garagedupont.fr',
       telephone: '06 12 34 56 78',
-      garanties_proposees: [],
+      garanties_proposees: garanties,
       statut: 'nouveau',
       notes_commerciales: null,
       commercial_assigne: null,
@@ -33,69 +61,15 @@ export async function GET() {
       user_agent: null,
     };
 
-    const garantiesTest: GarantieProposee[] = [
-      {
-        gamme: 'classique',
-        niveau: 5,
-        nomCommercial: 'Garantie Classique 5 Etoiles',
-        etoilesAffichage: '⭐⭐⭐⭐⭐',
-        ageMaxAns: 6,
-        kmMax: 120000,
-        plafondIntervention: 'VRADE',
-        nombrePiecesCouvertes: '+300 pièces',
-        prixBase: { '6': 309, '12': 399, '24': 699 },
-        prixFinal: { '6': 309, '12': 399, '24': 699 },
-        pondereApplique: false,
-        avantagesCommuns: [],
-        avantagesSpecifiques: ['Garantie TOUT SAUF'],
-        fichierCG: '/cg/CG_Classique_5etoiles.pdf',
-      },
-      {
-        gamme: 'classique',
-        niveau: 4,
-        nomCommercial: 'Garantie Classique 4 Etoiles',
-        etoilesAffichage: '⭐⭐⭐⭐',
-        ageMaxAns: 10,
-        kmMax: 150000,
-        plafondIntervention: '10 000€',
-        nombrePiecesCouvertes: '+120 pièces',
-        prixBase: { '6': 299, '12': 389, '24': 689 },
-        prixFinal: { '6': 299, '12': 389, '24': 689 },
-        pondereApplique: false,
-        avantagesCommuns: [],
-        avantagesSpecifiques: [],
-        fichierCG: '/cg/CG_Classique_4etoiles.pdf',
-      },
-      {
-        gamme: 'classique',
-        niveau: 3,
-        nomCommercial: 'Garantie Classique 3 Etoiles',
-        etoilesAffichage: '⭐⭐⭐',
-        ageMaxAns: 15,
-        kmMax: 200000,
-        plafondIntervention: '5 000€',
-        nombrePiecesCouvertes: '+60 pièces',
-        prixBase: { '6': 199, '12': 279, '24': 499 },
-        prixFinal: { '6': 199, '12': 279, '24': 499 },
-        pondereApplique: false,
-        avantagesCommuns: [],
-        avantagesSpecifiques: [],
-        fichierCG: '/cg/CG_Classique_3etoiles.pdf',
-      },
-    ];
-
-    const pdfBuffer = await genererPDFDevis(devisTest, garantiesTest);
-
-    return new NextResponse(new Uint8Array(pdfBuffer), {
+    const pdf = await genererPDFDevis(devisTest, garanties);
+    return new NextResponse(new Uint8Array(pdf), {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="test-devis-garantieplus.pdf"',
-        'Content-Length': String(pdfBuffer.length),
+        'Content-Disposition': 'inline; filename="devis-test-garantieplus.pdf"',
       },
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error('[test-pdf] Erreur:', msg, err);
-    return NextResponse.json({ error: msg, stack: err instanceof Error ? err.stack : '' }, { status: 500 });
+    console.error('[test-pdf]', err);
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }

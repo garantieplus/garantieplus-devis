@@ -1,110 +1,135 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { calculerGaranties } from '@/lib/tarificateur';
+import { calculerOffres, faitsDepuisVehicule } from '@/lib/gvo/offres';
 import { envoyerEmailGarage, envoyerEmailInterne } from '@/lib/emails';
+import { normaliserPlaque } from '@/lib/vehicule/plaque';
+import { ENERGIES, type Energie, type VehiculeInput } from '@/types';
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const TELEPHONE = /^(\+33|0033|0)[1-9][0-9]{8}$/;
+const DATE_ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+const texte = (v: unknown, max = 120): string => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+const entier = (v: unknown): number => {
+  const n = typeof v === 'number' ? v : parseInt(String(v ?? ''), 10);
+  return Number.isFinite(n) && n >= 0 ? Math.round(n) : 0;
+};
+
+/** Validation serveur du véhicule : même exigence que le formulaire, jamais de confiance au client. */
+function lireVehicule(raw: unknown): { vehicule: VehiculeInput } | { error: string } {
+  const v = (raw ?? {}) as Record<string, unknown>;
+  const energie = texte(v.energie) as Energie;
+  const vehicule: VehiculeInput = {
+    plaque: normaliserPlaque(texte(v.plaque, 12)),
+    vin: texte(v.vin, 17).toUpperCase(),
+    marque: texte(v.marque),
+    modele: texte(v.modele),
+    version: texte(v.version),
+    typeMine: texte(v.typeMine, 40),
+    dateMiseEnCirculation: texte(v.dateMiseEnCirculation, 10),
+    kilometrage: entier(v.kilometrage),
+    energie,
+    valeurNeufEuros: entier(v.valeurNeufEuros),
+    puissanceFiscale: v.puissanceFiscale == null || v.puissanceFiscale === '' ? null : entier(v.puissanceFiscale),
+    is4x4: !!v.is4x4,
+    sourceVehicule: v.sourceVehicule === 'plaque' ? 'plaque' : 'manuel',
+  };
+  if (!vehicule.marque || !vehicule.modele) return { error: 'Marque et modèle obligatoires' };
+  if (!DATE_ISO.test(vehicule.dateMiseEnCirculation) || Number.isNaN(new Date(vehicule.dateMiseEnCirculation).getTime())) {
+    return { error: 'Date de mise en circulation invalide' };
+  }
+  if (vehicule.dateMiseEnCirculation > new Date().toISOString().slice(0, 10)) return { error: 'Date de mise en circulation dans le futur' };
+  if (vehicule.kilometrage <= 0) return { error: 'Kilométrage invalide' };
+  if (!ENERGIES.some(e => e.value === energie)) return { error: 'Énergie invalide' };
+  if (vehicule.valeurNeufEuros < 1000) return { error: 'Prix à neuf invalide' };
+  return { vehicule };
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!body) return NextResponse.json({ error: 'Requête invalide' }, { status: 400 });
 
-    // Validation côté serveur
-    const {
-      marque, modele, mois, annee, kilometrage,
-      is4x4, isPlus2t3, isPlus14cv, isHybrideElectrique,
-      valeurNeuf55k, valeurNeuf100k, valeurNeuf150k,
-      nomContact, nomGarage, email, telephone,
-    } = body;
+    const lu = lireVehicule(body.vehicule);
+    if ('error' in lu) return NextResponse.json({ error: lu.error }, { status: 400 });
+    const { vehicule } = lu;
 
-    if (!marque || !modele || !mois || !annee || !kilometrage || !nomContact || !nomGarage || !email || !telephone) {
+    const nomContact = texte(body.nomContact);
+    const nomGarage = texte(body.nomGarage, 200);
+    const email = texte(body.email).toLowerCase();
+    const telephone = texte(body.telephone, 40);
+    if (!nomContact || !nomGarage || !email || !telephone) {
       return NextResponse.json({ error: 'Champs obligatoires manquants' }, { status: 400 });
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: 'Email invalide' }, { status: 400 });
+    if (!EMAIL.test(email)) return NextResponse.json({ error: 'Email invalide' }, { status: 400 });
+    if (!TELEPHONE.test(telephone.replace(/[\s.\-()]/g, ''))) {
+      return NextResponse.json({ error: 'Téléphone invalide' }, { status: 400 });
     }
 
-    const kmInt = parseInt(kilometrage);
-    if (isNaN(kmInt) || kmInt < 0) {
-      return NextResponse.json({ error: 'Kilométrage invalide' }, { status: 400 });
-    }
+    // Prix recalculés ici, jamais repris du client.
+    const garantiesProposees = calculerOffres(faitsDepuisVehicule(vehicule));
 
-    const dateCirculation = new Date(parseInt(annee), parseInt(mois) - 1, 1);
-    if (isNaN(dateCirculation.getTime())) {
-      return NextResponse.json({ error: 'Date invalide' }, { status: 400 });
-    }
-
-    const garantiesProposees = calculerGaranties({
-      dateCirculation,
-      kilometrage: kmInt,
-      is4x4: !!is4x4,
-      isPlus2t3: !!isPlus2t3,
-      isPlus14cv: !!isPlus14cv,
-      isHybrideElectrique: !!isHybrideElectrique,
-      valeurNeuf55k: !!valeurNeuf55k,
-      valeurNeuf100k: !!valeurNeuf100k,
-      valeurNeuf150k: !!valeurNeuf150k,
-    });
-
-    const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    const ipAddress =
+      req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
+    const eco = vehicule.energie === 'electrique' || vehicule.energie === 'hybride_rechargeable';
     const db = supabaseAdmin();
-    const { data, error } = await db.from('devis').insert({
-      marque,
-      modele,
-      date_mise_en_circulation: `${annee}-${mois.toString().padStart(2, '0')}-01`,
-      kilometrage: kmInt,
-      is_4x4: !!is4x4,
-      is_plus_2t3: !!isPlus2t3,
-      is_plus_14cv: !!isPlus14cv,
-      is_hybride_electrique: !!isHybrideElectrique,
-      valeur_neuf_55k: !!valeurNeuf55k,
-      valeur_neuf_100k: !!valeurNeuf100k,
-      valeur_neuf_150k: !!valeurNeuf150k,
-      nom_contact: nomContact,
-      nom_garage: nomGarage,
-      email,
-      telephone,
-      garanties_proposees: garantiesProposees,
-      statut: 'nouveau',
-      ip_address: ipAddress,
-      user_agent: userAgent,
-    }).select().single();
+    const { data, error } = await db
+      .from('devis')
+      .insert({
+        marque: vehicule.marque,
+        modele: vehicule.modele,
+        version: vehicule.version || null,
+        plaque: vehicule.plaque || null,
+        vin: vehicule.vin || null,
+        type_mine: vehicule.typeMine || null,
+        date_mise_en_circulation: vehicule.dateMiseEnCirculation,
+        kilometrage: vehicule.kilometrage,
+        energie: vehicule.energie,
+        valeur_neuf_euros: vehicule.valeurNeufEuros,
+        puissance_fiscale: vehicule.puissanceFiscale,
+        source_vehicule: vehicule.sourceVehicule,
+        is_4x4: vehicule.is4x4,
+        // Plus de pondération sur la puissance fiscale ni le PTAC (décision GP 2026-10-15).
+        is_plus_2t3: false,
+        is_plus_14cv: false,
+        // Colonnes historiques, dérivées des nouvelles (filtres du back-office).
+        is_hybride_electrique: eco,
+        valeur_neuf_55k: vehicule.valeurNeufEuros >= 55000,
+        valeur_neuf_100k: vehicule.valeurNeufEuros > 100000,
+        valeur_neuf_150k: vehicule.valeurNeufEuros >= 150000,
+        nom_contact: nomContact,
+        nom_garage: nomGarage,
+        email,
+        telephone,
+        garanties_proposees: garantiesProposees,
+        statut: 'nouveau',
+        ip_address: ipAddress,
+        user_agent: userAgent,
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error('Supabase insert error:', error);
       return NextResponse.json({ error: 'Erreur lors de la sauvegarde' }, { status: 500 });
     }
 
-    // Envoi emails en parallèle — les erreurs sont loguées mais non bloquantes
+    // Envoi des e-mails en parallèle — les erreurs sont loguées mais non bloquantes.
     const [resGarage, resInterne] = await Promise.allSettled([
       envoyerEmailGarage({ devis: data, garanties: garantiesProposees }),
       envoyerEmailInterne({ devis: data, garanties: garantiesProposees }),
     ]);
-
     const emailGarageOk = resGarage.status === 'fulfilled' && resGarage.value.success;
-    const emailInterneOk = resInterne.status === 'fulfilled' && resInterne.value.success;
-
     if (!emailGarageOk) {
-      const reason = resGarage.status === 'rejected'
-        ? resGarage.reason
-        : resGarage.value?.error;
-      console.error('[API] Email garage échoué:', reason);
+      console.error('[API] Email garage échoué:', resGarage.status === 'rejected' ? resGarage.reason : resGarage.value?.error);
     }
-    if (!emailInterneOk) {
-      const reason = resInterne.status === 'rejected'
-        ? resInterne.reason
-        : resInterne.value?.error;
-      console.error('[API] Email interne échoué:', reason);
+    if (!(resInterne.status === 'fulfilled' && resInterne.value.success)) {
+      console.error('[API] Email interne échoué:', resInterne.status === 'rejected' ? resInterne.reason : resInterne.value?.error);
     }
 
-    return NextResponse.json({
-      success: true,
-      id: data.id,
-      garanties: garantiesProposees,
-      emailEnvoye: emailGarageOk,
-    });
+    return NextResponse.json({ success: true, id: data.id, garanties: garantiesProposees, emailEnvoye: emailGarageOk });
   } catch (err) {
     console.error('API devis error:', err);
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 });
@@ -125,8 +150,9 @@ export async function GET(req: NextRequest) {
   if (from) query = query.gte('created_at', from);
   if (to) query = query.lte('created_at', to);
   if (search) {
+    const q = search.replace(/[,%()]/g, '');
     query = query.or(
-      `nom_garage.ilike.%${search}%,nom_contact.ilike.%${search}%,marque.ilike.%${search}%,modele.ilike.%${search}%,email.ilike.%${search}%`
+      `nom_garage.ilike.%${q}%,nom_contact.ilike.%${q}%,marque.ilike.%${q}%,modele.ilike.%${q}%,email.ilike.%${q}%,plaque.ilike.%${q}%`
     );
   }
 

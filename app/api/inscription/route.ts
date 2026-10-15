@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
 import { randomUUID } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
+import { envoyerEmail } from '@/lib/brevo';
 
 // ═══════════════════════════════════════════════════════════════
 // SQL À EXÉCUTER UNE FOIS DANS SUPABASE :
@@ -31,7 +31,6 @@ import { supabaseAdmin } from '@/lib/supabase';
 // -- (Supabase Dashboard > Storage > New bucket > décocher "Public bucket")
 // ═══════════════════════════════════════════════════════════════
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ── Magic bytes validation ──────────────────────────────────────
 const ALLOWED_MAGIC: { mime: string; check: (b: Buffer) => boolean }[] = [
@@ -309,8 +308,7 @@ export async function POST(req: NextRequest) {
   </div>
 </body></html>`;
 
-    await resend.emails.send({
-      from:    'Garantie Plus <devis@garantieplus.fr>',
+    await envoyerEmail({
       to:      adminEmail,
       subject: `🆕 Nouvelle inscription partenaire — ${nomGarage}`,
       html,
@@ -321,8 +319,7 @@ export async function POST(req: NextRequest) {
     });
 
     // ── 10. Email de confirmation ─────────────────────────────
-    await resend.emails.send({
-      from:    'Garantie Plus <devis@garantieplus.fr>',
+    await envoyerEmail({
       replyTo: 'devis@garantieplus.fr',
       to:      email,
       subject: 'Votre demande de partenariat Garantie Plus a bien été reçue',

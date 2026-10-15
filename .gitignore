@@ -46,3 +46,6 @@ Carnet de Garantie*.docx
 
 # Claude Code
 .claude/
+
+# L'exemple de configuration est versionné (les vrais .env restent ignorés)
+!.env.example
