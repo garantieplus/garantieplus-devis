@@ -44,9 +44,9 @@ export interface VehiculeInput {
   /** Prix à neuf en euros (véhiculier SRA via la plaque, ou saisi). */
   valeurNeufEuros: number;
   puissanceFiscale: number | null;
+  /** Seul critère de pondération hors valeur à neuf (décision GP 2026-10-15 : la puissance
+   *  fiscale et le PTAC ne comptent plus pour Covéa). */
   is4x4: boolean;
-  isPlus14cv: boolean;
-  isPlus2t3: boolean;
   sourceVehicule: 'plaque' | 'manuel';
 }
 
@@ -63,8 +63,6 @@ export const VEHICULE_VIDE: VehiculeInput = {
   valeurNeufEuros: 0,
   puissanceFiscale: null,
   is4x4: false,
-  isPlus14cv: false,
-  isPlus2t3: false,
   sourceVehicule: 'manuel',
 };
 

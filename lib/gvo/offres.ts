@@ -22,8 +22,6 @@ export interface FaitsVehicule {
   valeurNeufEuros: number;
   energie: Energie;
   is4x4: boolean;
-  isPlus14cv: boolean;
-  isPlus2t3: boolean;
 }
 
 // Frontière de gamme par valeur à neuf (décision GP 2026-09) : Classique jusqu'à
@@ -105,11 +103,15 @@ export function choisirVariante(gamme: Gamme, niveau: Niveau, f: FaitsVehicule):
   return jeune ? 'J' : '';
 }
 
-/** Pondération ×1,5 : Classique et Éco seulement, jamais la Luxe. */
+/**
+ * Pondération ×1,5 : Classique et Éco seulement, jamais la Luxe. Déclenchée par le 4x4 ou
+ * la valeur à neuf dans la bande 55 000 à 100 000 € ; la puissance fiscale (> 14 CV) et le
+ * PTAC (2,3–3,5 t) ne comptent plus pour Covéa (décision GP 2026-10-15).
+ */
 export function ponderationApplicable(gamme: Gamme, f: FaitsVehicule): boolean {
   if (gamme !== 'classique' && gamme !== 'eco') return false;
   const parLaValeur = f.valeurNeufEuros >= PONDERATION_VALEUR_MIN && f.valeurNeufEuros <= CLASSIQUE_VALEUR_MAX;
-  return Boolean(f.is4x4 || f.isPlus14cv || f.isPlus2t3 || parLaValeur);
+  return Boolean(f.is4x4 || parLaValeur);
 }
 
 export function segmentDe(gamme: Gamme, valeurNeufEuros: number): Segment {
@@ -188,7 +190,5 @@ export function faitsDepuisVehicule(v: VehiculeInput, reference = new Date()): F
     valeurNeufEuros: Number(v.valeurNeufEuros) || 0,
     energie: v.energie,
     is4x4: !!v.is4x4,
-    isPlus14cv: !!v.isPlus14cv,
-    isPlus2t3: !!v.isPlus2t3,
   };
 }

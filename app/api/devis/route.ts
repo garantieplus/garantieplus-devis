@@ -32,8 +32,6 @@ function lireVehicule(raw: unknown): { vehicule: VehiculeInput } | { error: stri
     valeurNeufEuros: entier(v.valeurNeufEuros),
     puissanceFiscale: v.puissanceFiscale == null || v.puissanceFiscale === '' ? null : entier(v.puissanceFiscale),
     is4x4: !!v.is4x4,
-    isPlus14cv: !!v.isPlus14cv,
-    isPlus2t3: !!v.isPlus2t3,
     sourceVehicule: v.sourceVehicule === 'plaque' ? 'plaque' : 'manuel',
   };
   if (!vehicule.marque || !vehicule.modele) return { error: 'Marque et modèle obligatoires' };
@@ -93,8 +91,9 @@ export async function POST(req: NextRequest) {
         puissance_fiscale: vehicule.puissanceFiscale,
         source_vehicule: vehicule.sourceVehicule,
         is_4x4: vehicule.is4x4,
-        is_plus_2t3: vehicule.isPlus2t3,
-        is_plus_14cv: vehicule.isPlus14cv,
+        // Plus de pondération sur la puissance fiscale ni le PTAC (décision GP 2026-10-15).
+        is_plus_2t3: false,
+        is_plus_14cv: false,
         // Colonnes historiques, dérivées des nouvelles (filtres du back-office).
         is_hybride_electrique: eco,
         valeur_neuf_55k: vehicule.valeurNeufEuros >= 55000,

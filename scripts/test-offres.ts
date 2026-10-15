@@ -5,7 +5,7 @@ import { calculerOffres, type FaitsVehicule } from '../lib/gvo/offres';
 
 const base: FaitsVehicule = {
   ageAnnees: 3, kilometrage: 50000, valeurNeufEuros: 30000, energie: 'essence',
-  is4x4: false, isPlus14cv: false, isPlus2t3: false,
+  is4x4: false,
 };
 const codes = (o: ReturnType<typeof calculerOffres>) => o.map(g => g.code);
 
@@ -38,6 +38,9 @@ assert.equal(o[0].prixCents['12'], Math.round(38900 * 1.5));
 assert.deepEqual(codes(calculerOffres({ ...base, valeurNeufEuros: 120000 })), ['GVO-LUX-5-J', 'GVO-LUX-4', 'GVO-LUX-3', 'GVO-LUX-2']);
 o = calculerOffres({ ...base, is4x4: true });
 assert.equal(o.find(g => g.niveau === 5)!.plafondIntervention.replace(/\s/g, ''), '10000€');
+
+// Puissance fiscale et PTAC : plus de pondération (décision GP 2026-10-15) — rien à passer.
+assert.ok(calculerOffres({ ...base, ageAnnees: 7, kilometrage: 100000 }).every(g => !g.pondereApplique));
 
 // Valeur 55 000 à 100 000 € inclus : pondérée ; 100 001 € : Luxe, jamais pondérée.
 assert.ok(calculerOffres({ ...base, valeurNeufEuros: 100000 }).every(g => g.pondereApplique && g.gamme === 'classique'));

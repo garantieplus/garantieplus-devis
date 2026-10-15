@@ -23,8 +23,6 @@ export async function GET() {
       valeurNeufEuros: 28500,
       puissanceFiscale: 7,
       is4x4: false,
-      isPlus14cv: false,
-      isPlus2t3: false,
       sourceVehicule: 'plaque',
     };
     const garanties = calculerOffres(faitsDepuisVehicule(vehicule));

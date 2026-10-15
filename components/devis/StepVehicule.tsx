@@ -71,8 +71,6 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
           valeurNeufEuros: v.value_new_euros ?? 0,
           puissanceFiscale: v.fiscal_power ?? null,
           is4x4: !!v.is_4x4,
-          isPlus14cv: !!v.is_over_14cv,
-          isPlus2t3: !!v.is_2300_3500kg,
           sourceVehicule: 'plaque',
         });
         if (r.versions.length > 1) setVersions(r.versions);
@@ -109,8 +107,6 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
           valeurNeufEuros: specs.valueNewEuros || cand.valueNewEuros || data.valeurNeufEuros,
           puissanceFiscale: specs.fiscalPower ?? data.puissanceFiscale,
           is4x4: specs.is4x4,
-          isPlus14cv: specs.isOver14cv,
-          isPlus2t3: specs.is23003500kg,
         });
       }
     } catch { /* la valeur de la liste suffit */ }
@@ -290,7 +286,7 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
                 value={data.puissanceFiscale ?? ''}
                 onChange={e => {
                   const n = parseInt(e.target.value, 10);
-                  onChange({ puissanceFiscale: Number.isNaN(n) ? null : n, isPlus14cv: Number.isNaN(n) ? data.isPlus14cv : n > 14 });
+                  onChange({ puissanceFiscale: Number.isNaN(n) ? null : n });
                 }}
                 className={cls(false)}
               />
@@ -298,11 +294,9 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-3">Caractéristiques (pondération ×1,5 sur les gammes Classique et Éco)</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              <Checkbox id="is4x4" label="4x4 / SUV" sublabel="Transmission intégrale" checked={data.is4x4} onChange={v => onChange({ is4x4: v })} />
-              <Checkbox id="isPlus14cv" label="Plus de 14 CV fiscaux" checked={data.isPlus14cv} onChange={v => onChange({ isPlus14cv: v })} />
-              <Checkbox id="isPlus2t3" label="PTAC 2,3 – 3,5 t" sublabel="Utilitaire lourd" checked={data.isPlus2t3} onChange={v => onChange({ isPlus2t3: v })} />
+            <p className="text-sm font-medium text-gray-700 mb-3">Caractéristique</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <Checkbox id="is4x4" label="4x4 / SUV" sublabel="Transmission intégrale — pondération ×1,5 (Classique et Éco)" checked={data.is4x4} onChange={v => onChange({ is4x4: v })} />
             </div>
           </div>
 

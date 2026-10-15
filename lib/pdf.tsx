@@ -162,7 +162,7 @@ export async function genererPDFDevis(devis: Devis, garanties: GarantieProposee[
       </View>
     ));
 
-  const caract = [devis.is_4x4 && '4x4 / SUV', devis.is_plus_14cv && '> 14 CV', devis.is_plus_2t3 && 'PTAC 2,3-3,5 t'].filter(Boolean).join(' · ');
+  const caract = devis.is_4x4 ? '4x4 / SUV' : '';
 
   const Footer = () => (
     <View style={S.footer} fixed>

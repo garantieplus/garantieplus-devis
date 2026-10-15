@@ -139,11 +139,7 @@ function carteGarantie(g: GarantieProposee, recommandee: boolean): string {
 // ── E-mail garage ─────────────────────────────────────────────────────────────
 
 function blocVehicule(devis: Devis): string {
-  const caract = [
-    devis.is_4x4 && '4x4 / SUV',
-    devis.is_plus_14cv && '> 14 CV fiscaux',
-    devis.is_plus_2t3 && 'PTAC 2,3–3,5 t',
-  ].filter(Boolean) as string[];
+  const caract = [devis.is_4x4 && '4x4 / SUV'].filter(Boolean) as string[];
   const ligne = (l: string, v: string) =>
     `<tr><td style="font-family:${POLICE};font-size:12px;color:#9ca3af;padding:3px 0;width:46%">${l}</td><td style="font-family:${POLICE};font-size:12px;color:#1a1a2e;font-weight:600">${v}</td></tr>`;
   return `
@@ -287,7 +283,7 @@ const emailInterneHTML = (devis: Devis, garanties: GarantieProposee[]) => {
       ${ligne('E-mail', `<a href="mailto:${h(devis.email)}" style="color:${BRAND}">${h(devis.email)}</a>`)}
       ${ligne('Téléphone', `<a href="tel:${h(devis.telephone.replace(/\s/g, ''))}" style="color:${BRAND}">${h(devis.telephone)}</a>`)}
       ${ligne('Véhicule', `<strong>${h(devis.marque)} ${h(devis.modele)}${devis.version ? ` ${h(devis.version)}` : ''}</strong>${devis.plaque ? ` — <span style="font-family:monospace">${h(devis.plaque)}</span>` : ''}<br><span style="font-size:12px;color:#6b7280">MEC ${formatDateFr(devis.date_mise_en_circulation)} · ${formatKm(devis.kilometrage)} · ${h(libelleEnergie(devis.energie))} · ${devis.valeur_neuf_euros ? `${devis.valeur_neuf_euros.toLocaleString('fr-FR')} € à neuf` : 'prix à neuf inconnu'} · ${devis.source_vehicule === 'plaque' ? 'retrouvé par la plaque' : 'saisi à la main'}</span>`)}
-      ${ligne('Pondération', devis.is_4x4 || devis.is_plus_14cv || devis.is_plus_2t3 ? [devis.is_4x4 && '4x4', devis.is_plus_14cv && '> 14 CV', devis.is_plus_2t3 && 'PTAC 2,3–3,5 t'].filter(Boolean).join(', ') : '—')}
+      ${ligne('Pondération', devis.is_4x4 ? '4x4' : '—')}
       ${ligne('Garanties', garanties.length ? garanties.map(g => `${h(g.nomCommercial)} — ${formatEuros(g.prixCents['12'])} (12 mois)${g.pondereApplique ? ' ×1,5' : ''}${g.tarifJeune ? ' jeune' : ''}`).join('<br>') : '<span style="color:#DC2626">Aucune éligible</span>')}
     </table>
     <div style="margin-top:20px">

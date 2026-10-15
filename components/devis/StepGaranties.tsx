@@ -27,8 +27,6 @@ export function ResumeVehicule({ v }: { v: VehiculeInput }) {
     libelleEnergie(v.energie),
     `${v.valeurNeufEuros.toLocaleString('fr-FR')} € à neuf`,
     v.is4x4 && '4x4',
-    v.isPlus14cv && '> 14 CV',
-    v.isPlus2t3 && 'PTAC 2,3–3,5 t',
   ].filter(Boolean) as string[];
   return (
     <div className="flex flex-wrap gap-1.5">

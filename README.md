@@ -13,8 +13,8 @@ part par e-mail.
 
 1. **Véhicule** — plaque + kilométrage ; la recherche (SIV + véhiculier SRA via l'app
    garantieplus) pré-remplit marque, modèle, version(s), date de 1ère mise en circulation,
-   énergie, **prix à neuf**, puissance fiscale et flags de pondération. Sans plaque ou plaque
-   inconnue : saisie manuelle.
+   énergie, **prix à neuf**, puissance fiscale et 4x4. Sans plaque ou plaque inconnue : saisie
+   manuelle.
 2. **Garanties & tarifs** — toutes les garanties éligibles (2 à 5 étoiles, Classique / Éco /
    Luxe), la plus étoilée en premier, prix TTC 6 / 12 / 24 mois, plafond, pièces et organes
    couverts : les mêmes cartes qu'au comptoir du garage.
@@ -27,7 +27,7 @@ part par e-mail.
 | Fichier | Source dans `garantieplus` |
 |---|---|
 | `lib/gvo/bareme-covea.ts` | `src/modules/catalog/bareme-gvo-covea.ts` (prix TTC du barème Covéa, contrat n° 8.700.048) |
-| `lib/gvo/offres.ts` | `src/modules/garanties/offre-garage.ts` (éligibilité, variantes J/B/P/PJ, pondération ×1,5) |
+| `lib/gvo/offres.ts` | `src/modules/garanties/offre-garage.ts` (éligibilité, variantes J/B/P/PJ, pondération ×1,5 — ici sur le 4x4 et la valeur à neuf seulement, décision GP 2026-10-15) |
 | `lib/gvo/plafond.ts` | `src/modules/garanties/plafond.ts` |
 | `lib/gvo/organes.ts` | `src/components/garanties/gammes-data.ts` |
 | `lib/gvo/documents.ts` | `src/modules/garanties/carnet.ts` (carnet 2026 v2, unique pour toutes les formules) |
