@@ -2,24 +2,26 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { DevisFormData, GarantieProposee } from '@/types';
+import { VEHICULE_VIDE, type DevisFormData, type GarantieProposee, type VehiculeInput } from '@/types';
 import Footer from '@/components/Footer';
 
 export const dynamic = 'force-dynamic';
 
 // ── Données de base réutilisées dans tous les scénarios ────────────────
 const BASE_FORM: DevisFormData = {
-  marque: 'Peugeot',
-  modele: '308',
-  dateMiseEnCirculation: { mois: '6', annee: '2021' },
-  kilometrage: 65000,
-  is4x4: false,
-  isPlus2t3: false,
-  isPlus14cv: false,
-  isHybrideElectrique: false,
-  valeurNeuf55k: false,
-  valeurNeuf100k: false,
-  valeurNeuf150k: false,
+  vehicule: {
+    ...VEHICULE_VIDE,
+    plaque: 'AB-123-CD',
+    marque: 'Peugeot',
+    modele: '308',
+    version: '1.2 PureTech 130 Allure',
+    dateMiseEnCirculation: '2021-06-01',
+    kilometrage: 65000,
+    energie: 'essence',
+    valeurNeufEuros: 28500,
+    puissanceFiscale: 7,
+    sourceVehicule: 'manuel',
+  },
   nomContact: 'Jean Dupont',
   nomGarage: 'Garage Dupont Auto',
   email: 'jean@garagedupont.fr',
@@ -32,42 +34,26 @@ function goToStep(form: DevisFormData, step: number) {
   window.location.href = '/';
 }
 
-// ── Helper : appeler l'API, stocker résultats, naviguer vers / ────────
+// ── Helper : appeler l'API (envoi réel des e-mails), stocker, naviguer ──
 async function goToResults(
-  formOverrides: Partial<DevisFormData>,
+  vehiculeOverrides: Partial<VehiculeInput>,
   setLoading: (k: string | null) => void,
   key: string
 ) {
   setLoading(key);
   try {
-    const form: DevisFormData = { ...BASE_FORM, ...formOverrides };
+    const form: DevisFormData = { ...BASE_FORM, vehicule: { ...BASE_FORM.vehicule, ...vehiculeOverrides } };
     const res = await fetch('/api/devis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        marque:             form.marque,
-        modele:             form.modele,
-        mois:               form.dateMiseEnCirculation.mois,
-        annee:              form.dateMiseEnCirculation.annee,
-        kilometrage:        form.kilometrage,
-        is4x4:              form.is4x4,
-        isPlus2t3:          form.isPlus2t3,
-        isPlus14cv:         form.isPlus14cv,
-        isHybrideElectrique:form.isHybrideElectrique,
-        valeurNeuf55k:      form.valeurNeuf55k,
-        valeurNeuf100k:     form.valeurNeuf100k,
-        valeurNeuf150k:     form.valeurNeuf150k,
-        nomContact:         form.nomContact,
-        nomGarage:          form.nomGarage,
-        email:              form.email,
-        telephone:          form.telephone,
-      }),
+      body: JSON.stringify(form),
     });
-    const data = await res.json() as { garanties: GarantieProposee[] };
+    const data = await res.json() as { garanties: GarantieProposee[]; emailEnvoye?: boolean };
     sessionStorage.setItem('garantieplus_demo', JSON.stringify({
       form,
       garanties: data.garanties ?? [],
-      step: 2,
+      emailEnvoye: !!data.emailEnvoye,
+      step: 3,
     }));
     window.location.href = '/';
   } catch (e) {
@@ -165,7 +151,7 @@ export default function DemoPage() {
           <h1 className="text-xl font-bold text-[#1A1A2E] mb-1">Mode démo — Garantie Plus Dev</h1>
           <p className="text-sm text-gray-500">
             Accès direct à chaque état de l&apos;application sans saisie manuelle.
-            Les scénarios &quot;Résultats&quot; effectuent un vrai appel à l&apos;API.
+            Les scénarios &quot;Résultats&quot; effectuent un vrai appel à l&apos;API (devis enregistré, e-mails envoyés).
           </p>
         </div>
 
@@ -181,9 +167,21 @@ export default function DemoPage() {
               disabled={anyBusy}
             />
             <DemoButton
-              label="Étape 2 — Garage (pré-rempli)"
-              sublabel="Données véhicule pré-remplies, étape 2"
+              label="Étape 2 — Garanties & tarifs"
+              sublabel="Peugeot 308, 2021, 65 000 km, 28 500 € à neuf"
               onClick={() => goToStep(BASE_FORM, 1)}
+              disabled={anyBusy}
+            />
+            <DemoButton
+              label="Étape 3 — Coordonnées"
+              sublabel="Véhicule renseigné, saisie du garage"
+              onClick={() => goToStep(BASE_FORM, 2)}
+              disabled={anyBusy}
+            />
+            <DemoButton
+              label="Étape 2 — Luxe > 150 K€ (tarif jeune)"
+              sublabel="Porsche Cayenne 2023, 20 000 km, 160 000 € à neuf"
+              onClick={() => goToStep({ ...BASE_FORM, vehicule: { ...BASE_FORM.vehicule, plaque: 'GE-456-ZZ', marque: 'Porsche', modele: 'Cayenne', version: 'E-Hybrid', dateMiseEnCirculation: '2023-03-15', kilometrage: 20000, energie: 'hybride_non_rechargeable', valeurNeufEuros: 160000, puissanceFiscale: 25 } }, 1)}
               disabled={anyBusy}
             />
           </div>
@@ -207,20 +205,17 @@ export default function DemoPage() {
             />
             <DemoButton
               label="Résultats — Hybride / ECO"
-              sublabel="Gamme ECO uniquement"
+              sublabel="Tesla Model 3 2020, 90 000 km → gamme ECO palier 2"
               loading={busy('eco')}
               disabled={anyBusy && !busy('eco')}
-              onClick={() => goToResults({ isHybrideElectrique: true }, setLoadingKey, 'eco')}
+              onClick={() => goToResults({ marque: 'Tesla', modele: 'Model 3', version: 'Long Range', energie: 'electrique', dateMiseEnCirculation: '2020-05-01', kilometrage: 90000, valeurNeufEuros: 52000 }, setLoadingKey, 'eco')}
             />
             <DemoButton
               label="Résultats — Véhicule non éligible"
-              sublabel="Année 2005, 250 000 km → aucune garantie"
+              sublabel="Année 2003, 250 000 km → aucune garantie"
               loading={busy('ineligible')}
               disabled={anyBusy && !busy('ineligible')}
-              onClick={() => goToResults({
-                dateMiseEnCirculation: { mois: '3', annee: '2005' },
-                kilometrage: 250000,
-              }, setLoadingKey, 'ineligible')}
+              onClick={() => goToResults({ dateMiseEnCirculation: '2003-03-01', kilometrage: 250000 }, setLoadingKey, 'ineligible')}
             />
           </div>
 

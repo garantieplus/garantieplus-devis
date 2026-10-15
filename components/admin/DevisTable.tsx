@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import StatusBadge from './StatusBadge';
 import { Devis, StatutDevis, GarantieProposee } from '@/types';
+import { nomDe } from '@/lib/gvo/compat';
 
 interface Props {
   devis: Devis[];
@@ -60,7 +61,8 @@ export default function DevisTable({ devis, onStatutChange, onDelete }: Props) {
         !d.nom_contact.toLowerCase().includes(q) &&
         !d.marque.toLowerCase().includes(q) &&
         !d.modele.toLowerCase().includes(q) &&
-        !d.email.toLowerCase().includes(q)
+        !d.email.toLowerCase().includes(q) &&
+        !(d.plaque ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').includes(q.replace(/[^a-z0-9]/g, ''))
       ) return false;
     }
     if (dateFrom && d.created_at < dateFrom) return false;
@@ -106,17 +108,19 @@ export default function DevisTable({ devis, onStatutChange, onDelete }: Props) {
   };
 
   const exportCSV = () => {
-    const headers = ['Date', 'Garage', 'Contact', 'Email', 'Téléphone', 'Marque', 'Modèle', 'Km', 'Garanties', 'Statut'];
+    const headers = ['Date', 'Garage', 'Contact', 'Email', 'Téléphone', 'Plaque', 'Marque', 'Modèle', 'Km', 'Prix à neuf', 'Garanties', 'Statut'];
     const rows = filtered.map(d => [
       format(new Date(d.created_at), 'dd/MM/yyyy HH:mm'),
       d.nom_garage,
       d.nom_contact,
       d.email,
       d.telephone,
+      d.plaque ?? '',
       d.marque,
       d.modele,
       d.kilometrage,
-      (d.garanties_proposees as GarantieProposee[]).map(g => g.etoilesAffichage).join(' | '),
+      d.valeur_neuf_euros ?? '',
+      (d.garanties_proposees as GarantieProposee[]).map(g => nomDe(g)).join(' | '),
       d.statut,
     ]);
     const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
@@ -246,7 +250,10 @@ export default function DevisTable({ devis, onStatutChange, onDelete }: Props) {
                 </td>
                 <td className="px-4 py-3">
                   <div className="font-medium text-gray-900">{d.marque} {d.modele}</div>
-                  <div className="text-gray-500 text-xs">{d.kilometrage.toLocaleString('fr-FR')} km</div>
+                  <div className="text-gray-500 text-xs">
+                    {d.plaque && <span className="mr-1.5 rounded bg-gray-100 px-1 font-mono text-[11px] text-gray-700">{d.plaque}</span>}
+                    {d.kilometrage.toLocaleString('fr-FR')} km
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">

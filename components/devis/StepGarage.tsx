@@ -43,8 +43,8 @@ export default function StepGarage({ data, onChange, onNext, onPrev, loading }: 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-[#1A1A2E] mb-1">Informations du garage</h2>
-        <p className="text-gray-500 text-sm">Pour recevoir votre devis par email</p>
+        <h2 className="text-2xl font-bold text-[#1A1A2E] mb-1">Vos coordonnées</h2>
+        <p className="text-gray-500 text-sm">Pour recevoir le devis par e-mail : PDF détaillé, carnet de garantie 2026 et plaquette Garantie Plus.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -132,7 +132,7 @@ export default function StepGarage({ data, onChange, onNext, onPrev, loading }: 
           Retour
         </Button>
         <Button type="submit" size="lg" className="w-full sm:flex-1" loading={loading}>
-          Voir mes garanties
+          Envoyer le devis par e-mail
         </Button>
       </div>
     </form>

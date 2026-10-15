@@ -6,7 +6,8 @@ import { fr } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
 import StatusBadge from './StatusBadge';
-import { Devis, StatutDevis, GarantieProposee } from '@/types';
+import { libelleEnergie, type Devis, type StatutDevis, type GarantieProposee } from '@/types';
+import { gammeDe, nomDe, plafondDe, prixCentsDe } from '@/lib/gvo/compat';
 
 interface CgClick {
   garantie_nom: string;
@@ -27,8 +28,8 @@ const STATUTS: { value: StatutDevis; label: string }[] = [
   { value: 'archive', label: 'Archivé' },
 ];
 
-const formatPrix = (n: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+const formatPrix = (cents: number | null) =>
+  cents == null ? '—' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(cents / 100);
 
 export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
   const router = useRouter();
@@ -111,12 +112,12 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
   const garanties = devis.garanties_proposees as GarantieProposee[];
   const caractVehicule = [
     devis.is_4x4 && '4x4 / SUV',
-    devis.is_plus_2t3 && '+2,3 tonnes',
-    devis.is_plus_14cv && '+14 CV fiscaux',
-    devis.is_hybride_electrique && 'Hybride / Électrique',
-    devis.valeur_neuf_55k && 'Valeur >55k€',
-    devis.valeur_neuf_100k && 'Valeur >100k€',
-    devis.valeur_neuf_150k && 'Valeur >150k€',
+    devis.is_plus_2t3 && 'PTAC 2,3–3,5 t',
+    devis.is_plus_14cv && '> 14 CV fiscaux',
+    !devis.energie && devis.is_hybride_electrique && 'Hybride / Électrique',
+    !devis.valeur_neuf_euros && devis.valeur_neuf_55k && 'Valeur > 55 k€',
+    !devis.valeur_neuf_euros && devis.valeur_neuf_100k && 'Valeur > 100 k€',
+    !devis.valeur_neuf_euros && devis.valeur_neuf_150k && 'Valeur > 150 k€',
   ].filter(Boolean);
 
   return (
@@ -124,7 +125,10 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
       {/* En-tête */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-xl font-bold text-[#1A1A2E]">{devis.marque} {devis.modele}</h2>
+          <h2 className="text-xl font-bold text-[#1A1A2E]">
+            {devis.plaque && <span className="mr-2 rounded bg-[#1A1A2E] px-2 py-0.5 font-mono text-sm tracking-wider text-white align-middle">{devis.plaque}</span>}
+            {devis.marque} {devis.modele}{devis.version ? ` ${devis.version}` : ''}
+          </h2>
           <p className="text-gray-500 text-sm mt-0.5">
             Devis du {format(new Date(devis.created_at), 'dd MMMM yyyy à HH:mm', { locale: fr })}
           </p>
@@ -148,8 +152,15 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between"><dt className="text-gray-500">Marque</dt><dd className="font-medium">{devis.marque}</dd></div>
             <div className="flex justify-between"><dt className="text-gray-500">Modèle</dt><dd className="font-medium">{devis.modele}</dd></div>
+            {devis.version && <div className="flex justify-between"><dt className="text-gray-500">Version</dt><dd className="font-medium text-right">{devis.version}</dd></div>}
+            {devis.plaque && <div className="flex justify-between"><dt className="text-gray-500">Immatriculation</dt><dd className="font-medium font-mono">{devis.plaque}</dd></div>}
+            {devis.vin && <div className="flex justify-between"><dt className="text-gray-500">VIN</dt><dd className="font-medium font-mono text-xs">{devis.vin}</dd></div>}
             <div className="flex justify-between"><dt className="text-gray-500">Mise en circulation</dt><dd className="font-medium">{devis.date_mise_en_circulation}</dd></div>
             <div className="flex justify-between"><dt className="text-gray-500">Kilométrage</dt><dd className="font-medium">{devis.kilometrage.toLocaleString('fr-FR')} km</dd></div>
+            {devis.energie && <div className="flex justify-between"><dt className="text-gray-500">Énergie</dt><dd className="font-medium">{libelleEnergie(devis.energie)}</dd></div>}
+            {devis.valeur_neuf_euros != null && <div className="flex justify-between"><dt className="text-gray-500">Prix à neuf</dt><dd className="font-medium">{devis.valeur_neuf_euros.toLocaleString('fr-FR')} €</dd></div>}
+            {devis.puissance_fiscale != null && <div className="flex justify-between"><dt className="text-gray-500">Puissance fiscale</dt><dd className="font-medium">{devis.puissance_fiscale} CV</dd></div>}
+            {devis.source_vehicule && <div className="flex justify-between"><dt className="text-gray-500">Source</dt><dd className="font-medium">{devis.source_vehicule === 'plaque' ? 'Retrouvé par la plaque' : 'Saisi à la main'}</dd></div>}
             {caractVehicule.length > 0 && (
               <div className="pt-2 border-t border-gray-100">
                 <dt className="text-gray-500 mb-1">Caractéristiques</dt>
@@ -201,11 +212,16 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
               <tbody className="divide-y divide-gray-50">
                 {garanties.map((g, i) => (
                   <tr key={i}>
-                    <td className="py-2">{g.etoilesAffichage}</td>
-                    <td className="py-2 text-gray-600">{g.plafondIntervention}</td>
-                    <td className="py-2 text-center">{formatPrix(g.prixFinal['6'])}</td>
-                    <td className="py-2 text-center font-semibold text-[#381893]">{formatPrix(g.prixFinal['12'])}</td>
-                    <td className="py-2 text-center">{formatPrix(g.prixFinal['24'])}</td>
+                    <td className="py-2">
+                      <span className="font-medium">{nomDe(g)}</span>
+                      <span className="ml-2 text-xs text-gray-400 uppercase">{gammeDe(g)}</span>
+                      {g.pondereApplique && <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">×1,5</span>}
+                      {g.tarifJeune && <span className="ml-2 text-xs bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded">jeune</span>}
+                    </td>
+                    <td className="py-2 text-gray-600">{plafondDe(g)}</td>
+                    <td className="py-2 text-center">{formatPrix(prixCentsDe(g, '6'))}</td>
+                    <td className="py-2 text-center font-semibold text-[#381893]">{formatPrix(prixCentsDe(g, '12'))}</td>
+                    <td className="py-2 text-center">{formatPrix(prixCentsDe(g, '24'))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -218,7 +234,7 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
       {cgClicks.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="font-semibold text-gray-800 mb-4">
-            📄 Conditions générales téléchargées
+            📄 Documents ouverts (carnet de garantie, plaquette)
             <span className="ml-2 text-xs font-normal bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">
               {cgClicks.length} clic{cgClicks.length > 1 ? 's' : ''}
             </span>
