@@ -9,9 +9,9 @@ const base: FaitsVehicule = {
 };
 const codes = (o: ReturnType<typeof calculerOffres>) => o.map(g => g.code);
 
-// Classique récente : 5★ au tarif jeune, puis 4, 3, 2 — la plus chère en premier.
+// Classique récente : 5★ au tarif jeune, puis 4, 3, 2 — la plus étoilée en premier.
 let o = calculerOffres(base);
-assert.deepEqual(codes(o), ['GVO-CLA-4', 'GVO-CLA-3', 'GVO-CLA-5-J', 'GVO-CLA-2']);
+assert.deepEqual(codes(o), ['GVO-CLA-5-J', 'GVO-CLA-4', 'GVO-CLA-3', 'GVO-CLA-2']);
 assert.equal(o.find(g => g.niveau === 5)!.prixCents['12'], 31900);
 assert.equal(o.find(g => g.niveau === 5)!.plafondIntervention, 'VRADE');
 assert.equal(o.find(g => g.niveau === 4)!.prixCents['6'], 29900);
@@ -34,6 +34,8 @@ o = calculerOffres({ ...base, is4x4: true, ageAnnees: 7, kilometrage: 100000 });
 assert.deepEqual(codes(o), ['GVO-CLA-4', 'GVO-CLA-3', 'GVO-CLA-2']);
 assert.ok(o.every(g => g.pondereApplique));
 assert.equal(o[0].prixCents['12'], Math.round(38900 * 1.5));
+// Luxe récente : 5★ jeune en tête malgré un prix inférieur à la 4★.
+assert.deepEqual(codes(calculerOffres({ ...base, valeurNeufEuros: 120000 })), ['GVO-LUX-5-J', 'GVO-LUX-4', 'GVO-LUX-3', 'GVO-LUX-2']);
 o = calculerOffres({ ...base, is4x4: true });
 assert.equal(o.find(g => g.niveau === 5)!.plafondIntervention.replace(/\s/g, ''), '10000€');
 

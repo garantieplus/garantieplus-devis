@@ -61,7 +61,7 @@ export default function GarantieCards({
   garanties: GarantieProposee[];
   durees: Record<number, Duree>;
   onDuree: (index: number, d: Duree) => void;
-  /** Pastille « RECOMMANDÉ » sur la première carte (la plus chère, comme au comptoir). */
+  /** Pastille « RECOMMANDÉ » sur la première carte (la plus étoilée). */
   recommande?: boolean;
 }) {
   return (

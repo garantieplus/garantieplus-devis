@@ -6,7 +6,8 @@
 //   3. pondération ×1,5 (Classique et Éco uniquement) ;
 //   4. prix TTC des 3 durées, plafond, pièces et organes couverts.
 // Toutes les garanties éligibles sont proposées (un véhicule récent voit la 5, la 4, la 3
-// et la 2 Étoiles), la plus chère en premier (décision GP) — comme au comptoir du garage.
+// et la 2 Étoiles), la plus étoilée en premier (décision GP 2026-10-15 pour le site devis :
+// le comptoir garage, lui, classe par prix).
 // Logique pure : aucune I/O, testée par scripts/test-offres.ts.
 
 import type { Energie, Gamme, GarantieProposee, Niveau, Segment, Variante } from '@/types';
@@ -122,7 +123,7 @@ function bornesAffichees(g: GarantieCatalogue, variante: Variante): { ageMaxAns:
   return { ageMaxAns: g.eligibilite.ageMaxAns, kmMax: g.eligibilite.kmMax };
 }
 
-/** Toutes les garanties éligibles au véhicule, prix TTC par durée, la plus chère en premier. */
+/** Toutes les garanties éligibles au véhicule, prix TTC par durée, la plus étoilée en premier. */
 export function calculerOffres(f: FaitsVehicule): GarantieProposee[] {
   const offres: GarantieProposee[] = [];
   for (const g of CATALOGUE_GVO) {
@@ -156,7 +157,8 @@ export function calculerOffres(f: FaitsVehicule): GarantieProposee[] {
       document: { label: CARNET_2026.label, href: CARNET_2026.href },
     });
   }
-  return offres.sort((a, b) => b.prixCents['12'] - a.prixCents['12']);
+  // Étoiles décroissantes ; à niveau égal (jamais le cas au catalogue GVO), le prix 12 mois.
+  return offres.sort((a, b) => b.niveau - a.niveau || b.prixCents['12'] - a.prixCents['12']);
 }
 
 /** Motif d'inéligibilité lisible, quand aucune offre ne sort. */

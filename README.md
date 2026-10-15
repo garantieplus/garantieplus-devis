@@ -16,8 +16,8 @@ part par e-mail.
    énergie, **prix à neuf**, puissance fiscale et flags de pondération. Sans plaque ou plaque
    inconnue : saisie manuelle.
 2. **Garanties & tarifs** — toutes les garanties éligibles (2 à 5 étoiles, Classique / Éco /
-   Luxe), prix TTC 6 / 12 / 24 mois, plafond, pièces et organes couverts : les mêmes cartes
-   qu'au comptoir du garage.
+   Luxe), la plus étoilée en premier, prix TTC 6 / 12 / 24 mois, plafond, pièces et organes
+   couverts : les mêmes cartes qu'au comptoir du garage.
 3. **Coordonnées** — nom, garage, e-mail, téléphone, consentement RGPD.
 4. **Devis envoyé** — e-mail au garage (devis PDF, **Carnet de garantie 2026**, plaquette) et
    e-mail interne ; CTA « Devenir partenaire » pré-rempli vers `/inscription`.
