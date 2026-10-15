@@ -22,9 +22,14 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(resultat);
 }
 
-/** GET ?sra=… -> caractéristiques de la version choisie (valeur à neuf, pondération). */
+/**
+ * GET ?sra=… -> caractéristiques de la version choisie (valeur à neuf, pondération).
+ * GET ?plaque=… -> même recherche que le POST (contrôle depuis un navigateur).
+ */
 export async function GET(req: NextRequest) {
+  const plaque = req.nextUrl.searchParams.get('plaque')?.trim() ?? '';
+  if (plaque) return NextResponse.json(await rechercherVehicule(plaque, ipClient(req)));
   const sra = req.nextUrl.searchParams.get('sra')?.trim() ?? '';
-  if (!sra) return NextResponse.json({ error: 'Paramètre sra requis' }, { status: 400 });
+  if (!sra) return NextResponse.json({ error: 'Paramètre plaque ou sra requis' }, { status: 400 });
   return NextResponse.json({ specs: await specsVersion(sra) });
 }
