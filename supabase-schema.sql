@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS devis (
   telephone TEXT NOT NULL,
   garanties_proposees JSONB NOT NULL DEFAULT '[]',
   statut TEXT NOT NULL DEFAULT 'nouveau'
-    CHECK (statut IN ('nouveau', 'a_rappeler', 'rappele', 'converti', 'perdu')),
+    CHECK (statut IN ('nouveau', 'a_rappeler', 'rappele', 'converti', 'perdu', 'archive')),
   notes_commerciales TEXT,
   commercial_assigne TEXT,
   ip_address TEXT,

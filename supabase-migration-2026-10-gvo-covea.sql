@@ -1,7 +1,8 @@
 -- ============================================================
 -- Garantie Plus — devis.garantieplus.fr
 -- Migration octobre 2026 : parcours GVO Covéa (plaque, véhicule complet, carnet 2026)
--- À exécuter UNE FOIS dans l'éditeur SQL de Supabase, sur une base déjà créée avec
+-- Appliquée sur le projet Supabase « garantieplus-devis » le 2026-10-15 (migration
+-- gvo_covea_plaque_vehicule_2026_10). À exécuter sur toute autre base déjà créée avec
 -- supabase-schema.sql (les anciennes colonnes sont conservées, rien n'est supprimé).
 -- ============================================================
 
@@ -17,6 +18,11 @@ ALTER TABLE devis
   ADD COLUMN IF NOT EXISTS source_vehicule TEXT CHECK (source_vehicule IN ('plaque', 'manuel'));
 
 CREATE INDEX IF NOT EXISTS idx_devis_plaque ON devis(plaque);
+
+-- Statut « archive » : proposé par le back-office mais absent de la contrainte d'origine.
+ALTER TABLE devis DROP CONSTRAINT IF EXISTS devis_statut_check;
+ALTER TABLE devis ADD CONSTRAINT devis_statut_check
+  CHECK (statut IN ('nouveau', 'a_rappeler', 'rappele', 'converti', 'perdu', 'archive'));
 
 -- 2. Plafond des recherches de plaque : la table de rate limiting de l'inscription
 --    partenaire gagne un scope ('inscription' par défaut, 'plaque' pour la recherche).
