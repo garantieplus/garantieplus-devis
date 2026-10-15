@@ -92,12 +92,15 @@ async function viaAppGarantiePlus(plaque: string): Promise<ResultatRecherche | n
 export async function rechercherVehicule(brut: string, ip: string): Promise<ResultatRecherche> {
   const plaque = normaliserPlaque(brut);
   if (plaque.length < 4) return { vehicule: null, versions: [] };
-  if (!rechercheConfiguree()) return { vehicule: null, versions: [], indisponible: true };
+  if (!rechercheConfiguree()) {
+    console.warn('[plaque] aucune source configurée (GARANTIEPLUS_API_URL/KEY ou VEHICLE_LOOKUP_TOKEN)');
+    return { vehicule: null, versions: [], indisponible: true, motif: 'non_configuree' };
+  }
 
   const cache = await lireCache(plaque);
   if (cache) return cache;
 
-  if (!(await sousPlafond(ip))) return { vehicule: null, versions: [], indisponible: true };
+  if (!(await sousPlafond(ip))) return { vehicule: null, versions: [], indisponible: true, motif: 'quota' };
 
   try {
     let resultat = await viaAppGarantiePlus(plaque);
@@ -109,7 +112,7 @@ export async function rechercherVehicule(brut: string, ip: string): Promise<Resu
     return resultat;
   } catch (e) {
     console.warn('[plaque] recherche indisponible :', e instanceof Error ? e.message : e);
-    return { vehicule: null, versions: [], indisponible: true };
+    return { vehicule: null, versions: [], indisponible: true, motif: 'fournisseur' };
   }
 }
 

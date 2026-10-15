@@ -45,4 +45,6 @@ export interface ResultatRecherche {
   versions: VersionCandidate[];
   /** Vrai quand la recherche a été refusée (trop d'appels) ou n'est pas configurée. */
   indisponible?: boolean;
+  /** Pourquoi : aucune source configurée, plafond par IP atteint, ou fournisseur en erreur. */
+  motif?: 'non_configuree' | 'quota' | 'fournisseur';
 }
