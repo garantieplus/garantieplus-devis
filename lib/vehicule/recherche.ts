@@ -18,8 +18,9 @@ import type { ResultatRecherche, VehiculeTrouve, VersionCandidate, VersionSpecs 
 
 const CACHE_JOURS = 30;
 const PLAFOND_PAR_IP_PAR_HEURE = 40;
-/** Nombre maximal de lignes du véhiculier lues pour proposer les versions. */
+/** Lignes du véhiculier lues par type mine, et versions proposées au maximum. */
 const MAX_LIGNES_VERSIONS = 400;
+const MAX_VERSIONS = 60;
 
 /** Vrai si une source de recherche est configurée (sinon le formulaire part en saisie manuelle). */
 export function rechercheConfiguree(): boolean {
@@ -122,36 +123,82 @@ async function ligneParSra(sra: string): Promise<LigneVehiculier | null> {
   return (data as LigneVehiculier | null) ?? null;
 }
 
-/**
- * Versions du véhiculier correspondant au véhicule : par type mine quand le SIV le donne
- * (de loin le rapprochement le plus sûr), sinon par marque + modèle. Une version par ligne,
- * avec la valeur à neuf la plus haute connue et l'identifiant SRA de l'année la plus récente.
- */
-async function versionsPour(v: VehiculeTrouve): Promise<VersionCandidate[]> {
-  const db = supabaseAdmin();
-  let req = db.from('vehiculier').select(COLONNES).not('version', 'is', null).limit(MAX_LIGNES_VERSIONS);
-  const typeMine = v.type_mine?.trim();
-  if (typeMine) req = req.eq('type_mines', typeMine);
-  else if (v.brand && v.model) req = req.ilike('marque', v.brand.trim()).ilike('modele', v.model.trim());
-  else return [];
-  const { data, error } = await req;
-  if (error) throw error;
+interface Candidate { version: string; sra: string; annee: number; prix: number }
 
-  const parVersion = new Map<string, { sra: string; annee: number; prix: number }>();
-  for (const l of (data ?? []) as LigneVehiculier[]) {
-    const version = l.version!.trim();
+/** Versions distinctes d'un lot de lignes : valeur à neuf la plus haute, SRA de l'année la plus récente. */
+function regrouperParVersion(lignes: LigneVehiculier[]): Candidate[] {
+  const parVersion = new Map<string, Candidate>();
+  for (const l of lignes) {
+    const version = (l.version ?? '').trim();
+    if (!version) continue;
     const annee = l.annee_commercialisation ?? 0;
     const prix = prixNeuf(l);
     const cur = parVersion.get(version);
-    if (!cur) parVersion.set(version, { sra: l.sra_identifiant, annee, prix });
+    if (!cur) parVersion.set(version, { version, sra: l.sra_identifiant, annee, prix });
     else {
       if (annee > cur.annee) { cur.sra = l.sra_identifiant; cur.annee = annee; }
       if (prix > cur.prix) cur.prix = prix;
     }
   }
-  return [...parVersion.entries()]
-    .map(([version, c]) => ({ version, sra: c.sra, valueNewEuros: c.prix }))
-    .sort((a, b) => a.version.localeCompare(b.version, 'fr'));
+  return [...parVersion.values()];
+}
+
+const tokens = (s: string): string[] => s.toUpperCase().split(/[^A-Z0-9.]+/).filter(t => t.length > 1);
+
+/**
+ * Classe les versions candidates : d'abord celles qui partagent le plus de mots avec la
+ * version annoncée par le SIV (« 35 L4H3 », « 2.0 TDI 150 »…), puis par ordre alphabétique,
+ * et ne garde que les MAX_VERSIONS premières — un modèle courant compte des centaines de
+ * versions, inutilisables en liste.
+ */
+function classerVersions(candidates: Candidate[], versionSiv: string | undefined): VersionCandidate[] {
+  const ref = new Set(tokens(versionSiv ?? ''));
+  const score = (v: string) => tokens(v).filter(t => ref.has(t)).length;
+  return candidates
+    .map(c => ({ c, s: score(c.version) }))
+    .sort((a, b) => b.s - a.s || a.c.version.localeCompare(b.c.version, 'fr'))
+    .slice(0, MAX_VERSIONS)
+    .map(({ c }) => ({ version: c.version, sra: c.sra, valueNewEuros: c.prix }));
+}
+
+/**
+ * Versions du véhiculier correspondant au véhicule : par type mine quand le SIV le donne ET
+ * que le référentiel le connaît (de loin le rapprochement le plus sûr), sinon par marque +
+ * modèle (fonction SQL vehiculier_versions : regroupement côté base, le modèle pouvant
+ * compter des centaines de lignes). Le SIV donne souvent un CNIT (« N10VWGCTX60J732 ») là
+ * où le référentiel SRA a un type mine court (« SYN1E ») : d'où le repli.
+ */
+async function versionsPour(v: VehiculeTrouve): Promise<VersionCandidate[]> {
+  const db = supabaseAdmin();
+  const typeMine = v.type_mine?.trim();
+  if (typeMine) {
+    const { data, error } = await db
+      .from('vehiculier')
+      .select(COLONNES)
+      .eq('type_mines', typeMine)
+      .not('version', 'is', null)
+      .limit(MAX_LIGNES_VERSIONS);
+    if (error) throw error;
+    const parTypeMine = regrouperParVersion((data ?? []) as LigneVehiculier[]);
+    if (parTypeMine.length > 0) return classerVersions(parTypeMine, v.version);
+  }
+  const marque = v.brand?.trim();
+  const modele = v.model?.trim();
+  if (!marque || !modele) return [];
+  // Le SIV suffixe parfois le modèle (« CRAFTER Van ») : à défaut du libellé complet, son premier mot.
+  const premierMot = modele.split(/\s+/)[0];
+  for (const m of premierMot !== modele ? [modele, premierMot] : [modele]) {
+    const { data, error } = await db.rpc('vehiculier_versions', { p_marque: marque, p_modele: m });
+    if (error) throw error;
+    const rows = (data ?? []) as { version: string; sra: string; prix: number | null }[];
+    if (rows.length > 0) {
+      return classerVersions(
+        rows.map(r => ({ version: r.version, sra: r.sra, annee: 0, prix: r.prix ?? 0 })),
+        v.version,
+      );
+    }
+  }
+  return [];
 }
 
 /**
