@@ -263,7 +263,7 @@ export default function StepVehicule({ data, onChange, onNext }: Props) {
                 type="number"
                 inputMode="numeric"
                 min={1000}
-                step={100}
+                step={1}
                 value={data.valeurNeufEuros || ''}
                 onChange={e => onChange({ valeurNeufEuros: parseInt(e.target.value, 10) || 0 })}
                 placeholder="Ex : 28 500"
