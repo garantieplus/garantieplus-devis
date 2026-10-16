@@ -131,3 +131,20 @@ CREATE TABLE IF NOT EXISTS vehiculier (
 CREATE INDEX IF NOT EXISTS vehiculier_type_mines_idx ON vehiculier (type_mines);
 CREATE INDEX IF NOT EXISTS vehiculier_marque_modele_idx ON vehiculier (marque, modele);
 ALTER TABLE vehiculier ENABLE ROW LEVEL SECURITY;
+
+-- Versions distinctes d'un modèle (regroupement côté base : un modèle courant compte des
+-- centaines de lignes). Appelée par le serveur uniquement (clé service).
+create or replace function public.vehiculier_versions(p_marque text, p_modele text)
+returns table (version text, sra text, prix integer)
+language sql stable security invoker set search_path = public as $$
+  select v.version,
+         (array_agg(v.sra_identifiant order by v.annee_commercialisation desc nulls last))[1] as sra,
+         max(coalesce(v.prix_origine, v.dernier_prix_connu)) as prix
+  from public.vehiculier v
+  where v.marque ilike p_marque and v.modele ilike p_modele and v.version is not null
+  group by v.version
+  order by v.version
+  limit 400
+$$;
+revoke execute on function public.vehiculier_versions(text, text) from public, anon, authenticated;
+grant execute on function public.vehiculier_versions(text, text) to service_role;
