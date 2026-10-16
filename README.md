@@ -11,8 +11,8 @@ part par e-mail.
 
 ## Parcours
 
-1. **Véhicule** — plaque + kilométrage ; la recherche (SIV + véhiculier SRA via l'app
-   garantieplus) pré-remplit marque, modèle, version(s), date de 1ère mise en circulation,
+1. **Véhicule** — plaque + kilométrage ; la recherche (SIV apiplaque + véhiculier SRA de la
+   base du site) pré-remplit marque, modèle, version(s), date de 1ère mise en circulation,
    énergie, **prix à neuf**, puissance fiscale et 4x4. Sans plaque ou plaque inconnue : saisie
    manuelle.
 2. **Garanties & tarifs** — toutes les garanties éligibles (2 à 5 étoiles, Classique / Éco /
@@ -42,7 +42,7 @@ Aucun document ni mention d'un ancien assureur : le seul document remis est
 
 ```bash
 npm install
-cp .env.example .env.local      # renseigner Supabase, Brevo, l'API garantieplus
+cp .env.example .env.local      # renseigner Supabase, Brevo, le token apiplaque
 npm run dev                     # http://localhost:3000
 ```
 
@@ -51,8 +51,15 @@ Base Supabase : `supabase-schema.sql` (base neuve) ou `supabase-migration-2026-1
 `inscriptions-documents` et les tables `inscriptions` / `security_logs` restent ceux de
 `app/api/inscription/route.ts`.
 
-Côté app garantieplus : poser `SITE_DEVIS_API_KEY` (la même valeur que `GARANTIEPLUS_API_KEY`
-ici) — l'endpoint `/api/partenaires/site-devis/vehicule` est fermé tant qu'elle est vide.
+### Véhiculier SRA
+
+La table `vehiculier` (136 720 versions : marque, modèle, version, type mine, énergie,
+transmission, **prix à neuf**, puissance fiscale, PTAC…) est une copie du référentiel SRA.
+`supabase-migration-2026-10-vehiculier.sql` crée la table ; les données ont été chargées une
+fois (octobre 2026) depuis l'ancienne base. La recherche par plaque s'en sert pour la valeur
+à neuf (par `sra_identifiant` rendu par le SIV), le 4x4 (transmission 4P/4D) et la liste des
+versions possibles (par type mine, sinon marque + modèle) quand le SIV ne tranche pas.
+Lecture serveur uniquement (clé service) ; aucune policy publique.
 
 ## Commandes
 

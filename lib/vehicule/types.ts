@@ -1,6 +1,6 @@
-// Véhicule retrouvé par la plaque — forme rendue par l'API « site-devis » de l'app
-// garantieplus (POST /api/partenaires/site-devis/vehicule), elle-même alignée sur
-// VehicleLookupResult de ses adapters, enrichie du véhiculier SRA.
+// Véhicule retrouvé par la plaque : réponse du SIV (apiplaque) enrichie du véhiculier SRA
+// (table `vehiculier` de la base Supabase du site). Forme alignée sur VehicleLookupResult
+// des adapters de l'app garantieplus pour garder les mêmes champs.
 
 import type { Energie } from '@/types';
 
@@ -43,7 +43,7 @@ export interface VersionSpecs {
 export interface ResultatRecherche {
   vehicule: VehiculeTrouve | null;
   versions: VersionCandidate[];
-  /** Vrai quand la recherche a été refusée (trop d'appels) ou n'est pas configurée. */
+  /** Vrai quand la recherche a été refusée (trop d'appels), n'est pas configurée ou a échoué. */
   indisponible?: boolean;
   /** Pourquoi : aucune source configurée, plafond par IP atteint, ou fournisseur en erreur. */
   motif?: 'non_configuree' | 'quota' | 'fournisseur';
