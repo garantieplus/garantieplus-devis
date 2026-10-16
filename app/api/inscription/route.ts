@@ -320,7 +320,7 @@ export async function POST(req: NextRequest) {
 
     // ── 10. Email de confirmation ─────────────────────────────
     await envoyerEmail({
-      replyTo: 'devis@garantieplus.fr',
+      replyTo: 'contact@garantieplus.fr',
       to:      email,
       subject: 'Votre demande de partenariat Garantie Plus a bien été reçue',
       html: `<!DOCTYPE html>

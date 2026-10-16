@@ -342,7 +342,7 @@ export async function envoyerEmailGarage({
 
     const data = await envoyerEmail({
       to: devis.email,
-      replyTo: 'devis@garantieplus.fr',
+      replyTo: 'contact@garantieplus.fr',
       subject: `Votre devis Garantie Plus — ${devis.marque} ${devis.modele}${devis.plaque ? ` (${devis.plaque})` : ''}`,
       html: emailGarageHTML(devis, garanties),
       attachments,

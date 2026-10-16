@@ -1,6 +1,6 @@
 // E-mails transactionnels via Brevo (API REST directe, sans SDK — même principe que
 // l'adapter de l'app garantieplus). BREVO_API_KEY obligatoire ; EMAIL_FROM au format
-// « Garantie Plus <devis@garantieplus.fr> », dont le domaine doit être authentifié chez Brevo.
+// « Garantie Plus <contact@garantieplus.fr> », dont le domaine doit être authentifié chez Brevo.
 
 const BREVO_EMAIL_API = 'https://api.brevo.com/v3/smtp/email';
 
@@ -25,7 +25,7 @@ export function expediteur(from: string): { name?: string; email: string } {
   return name ? { name, email: m[2].trim() } : { email: m[2].trim() };
 }
 
-export const EXPEDITEUR_PAR_DEFAUT = 'Garantie Plus <devis@garantieplus.fr>';
+export const EXPEDITEUR_PAR_DEFAUT = 'Garantie Plus <contact@garantieplus.fr>';
 
 export async function envoyerEmail(msg: MessageEmail): Promise<{ id: string }> {
   const apiKey = process.env.BREVO_API_KEY;
