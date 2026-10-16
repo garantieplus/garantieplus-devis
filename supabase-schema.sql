@@ -96,3 +96,38 @@ CREATE TABLE IF NOT EXISTS cg_clicks (
   clicked_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_cg_clicks_devis ON cg_clicks(devis_id);
+
+-- =============================================================================
+-- Véhiculier SRA (136 720 versions) : valeur à neuf, 4x4, versions possibles.
+-- Données chargées une fois (octobre 2026) — voir supabase-migration-2026-10-vehiculier.sql.
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS vehiculier (
+  sra_identifiant text PRIMARY KEY,
+  marque text NOT NULL,
+  modele text NOT NULL,
+  version text,
+  energie text,
+  code_energie text,
+  type_mines text,
+  numero_cnit text,
+  carrosserie text,
+  code_carrosserie text,
+  code_segment text,
+  transmission text,
+  code_marque text,
+  code_modele text,
+  dernier_prix_connu integer,
+  prix_origine integer,
+  puissance_administrative integer,
+  puissance_reelle_din integer,
+  ptac_kg integer,
+  poids_a_sec integer,
+  cylindree_cm integer,
+  emission_co2 integer,
+  nombre_places integer,
+  annee_commercialisation integer,
+  annee_fin_commercialisation integer
+);
+CREATE INDEX IF NOT EXISTS vehiculier_type_mines_idx ON vehiculier (type_mines);
+CREATE INDEX IF NOT EXISTS vehiculier_marque_modele_idx ON vehiculier (marque, modele);
+ALTER TABLE vehiculier ENABLE ROW LEVEL SECURITY;

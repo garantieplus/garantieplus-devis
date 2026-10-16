@@ -1,7 +1,6 @@
-// Repli : appel DIRECT du fournisseur SIV (apiplaqueimmatriculation.com), copie de
-// src/adapters/apiplaque.ts de l'app garantieplus, quand l'API de l'app n'est pas
-// configurée (GARANTIEPLUS_API_URL / GARANTIEPLUS_API_KEY). Sans le véhiculier, la valeur
-// à neuf n'est pas connue : le garage la saisit.
+// Fournisseur SIV (apiplaqueimmatriculation.com), copie de src/adapters/apiplaque.ts de
+// l'app garantieplus. Rend l'identifiant SRA (sra_id) qui sert ensuite à retrouver la
+// valeur à neuf dans le véhiculier (lib/vehicule/recherche.ts).
 
 import type { Energie } from '@/types';
 import type { VehiculeTrouve } from './types';
