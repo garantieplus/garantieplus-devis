@@ -33,6 +33,13 @@ function is4x4(...parts: (string | undefined)[]): boolean {
 export async function rechercheApiPlaque(plate: string, token: string): Promise<VehiculeTrouve | null> {
   const url = `https://api.apiplaqueimmatriculation.com/plaque?immatriculation=${encodeURIComponent(plate)}&token=${encodeURIComponent(token)}&pays=FR`;
   const res = await fetch(url, { method: 'POST', signal: AbortSignal.timeout(15_000) });
+  // 400 = plaque refusée par le fournisseur (format invalide, ex. « ES-35-SF » à qui il manque
+  // un chiffre) : c'est une plaque non reconnue, pas une panne — le garage saisit le véhicule.
+  if (res.status === 400) {
+    const corps = (await res.json().catch(() => ({}))) as { message?: string };
+    console.warn(`[plaque] refusée par le fournisseur : ${corps.message ?? 'HTTP 400'}`);
+    return null;
+  }
   if (!res.ok) throw new Error(`apiplaque lookup failed: ${res.status}`);
   const json = (await res.json()) as Record<string, unknown>;
   const d = ((json.data as Record<string, unknown>) ?? json) as Record<string, unknown>;
