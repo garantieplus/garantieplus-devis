@@ -4,6 +4,7 @@ import { calculerOffres, faitsDepuisVehicule } from '@/lib/gvo/offres';
 import { envoyerEmailGarage, envoyerEmailInterne } from '@/lib/emails';
 import { normaliserPlaque } from '@/lib/vehicule/plaque';
 import { ENERGIES, type Energie, type VehiculeInput } from '@/types';
+import { exigerSession } from '@/lib/auth-admin';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TELEPHONE = /^(\+33|0033|0)[1-9][0-9]{8}$/;
@@ -137,6 +138,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const acces = await exigerSession(req);
+  if (acces instanceof NextResponse) return acces;
   const db = supabaseAdmin();
   const { searchParams } = new URL(req.url);
   const statut = searchParams.get('statut');

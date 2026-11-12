@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { envoyerEmailGarage, envoyerEmailInterne } from '@/lib/emails';
+import { exigerSession } from '@/lib/auth-admin';
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const acces = await exigerSession(req);
+  if (acces instanceof NextResponse) return acces;
   const { id } = await params;
   const db = supabaseAdmin();
   const { data, error } = await db.from('devis').select('*').eq('id', id).single();
@@ -11,6 +14,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const acces = await exigerSession(req);
+  if (acces instanceof NextResponse) return acces;
   const { id } = await params;
   const body = await req.json();
 
@@ -30,7 +35,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return NextResponse.json(data);
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const acces = await exigerSession(req);
+  if (acces instanceof NextResponse) return acces;
   const { id } = await params;
   const db = supabaseAdmin();
   const { error } = await db.from('devis').delete().eq('id', id);
@@ -39,6 +46,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const acces = await exigerSession(req);
+  if (acces instanceof NextResponse) return acces;
   const { id } = await params;
   const { action } = await req.json();
 
