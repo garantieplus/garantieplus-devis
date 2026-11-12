@@ -7,6 +7,7 @@ import { Toaster, toast } from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
 import DevisTable from '@/components/admin/DevisTable';
 import { Devis, StatutDevis } from '@/types';
+import { adminFetch } from '@/lib/admin-fetch';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function AdminDashboard() {
   }, [router]);
 
   const fetchDevis = useCallback(async () => {
-    const res = await fetch('/api/devis');
+    const res = await adminFetch('/api/devis');
     const data = await res.json();
     if (Array.isArray(data)) setDevis(data);
     setLoading(false);
@@ -32,7 +33,7 @@ export default function AdminDashboard() {
 
   const handleStatutChange = async (id: string, statut: StatutDevis) => {
     try {
-      const res = await fetch(`/api/devis/${id}`, {
+      const res = await adminFetch(`/api/devis/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ statut }),

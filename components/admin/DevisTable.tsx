@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale';
 import StatusBadge from './StatusBadge';
 import { Devis, StatutDevis, GarantieProposee } from '@/types';
 import { nomDe } from '@/lib/gvo/compat';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface Props {
   devis: Devis[];
@@ -101,7 +102,7 @@ export default function DevisTable({ devis, onStatutChange, onDelete }: Props) {
     const ids = Array.from(selected);
     if (!window.confirm(`Supprimer définitivement ${ids.length} devis ? Cette action est irréversible.`)) return;
     setDeleting(true);
-    await Promise.all(ids.map(id => fetch(`/api/devis/${id}`, { method: 'DELETE' })));
+    await Promise.all(ids.map(id => adminFetch(`/api/devis/${id}`, { method: 'DELETE' })));
     setSelected(new Set());
     onDelete?.(ids);
     setDeleting(false);

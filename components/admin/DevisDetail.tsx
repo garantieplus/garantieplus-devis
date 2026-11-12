@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import StatusBadge from './StatusBadge';
 import { libelleEnergie, type Devis, type StatutDevis, type GarantieProposee } from '@/types';
 import { gammeDe, nomDe, plafondDe, prixCentsDe } from '@/lib/gvo/compat';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface CgClick {
   garantie_nom: string;
@@ -56,7 +57,7 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/devis/${devis.id}`, {
+      const res = await adminFetch(`/api/devis/${devis.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,7 +82,7 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
   const handleResendEmail = async () => {
     setResending(true);
     try {
-      const res = await fetch(`/api/devis/${devis.id}`, {
+      const res = await adminFetch(`/api/devis/${devis.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'resend-email' }),
@@ -98,7 +99,7 @@ export default function DevisDetail({ devis: initialDevis, onUpdate }: Props) {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/devis/${devis.id}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/devis/${devis.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error();
       toast.success('Devis supprimé');
       router.push('/admin/dashboard');

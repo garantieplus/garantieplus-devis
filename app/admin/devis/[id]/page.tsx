@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
 import DevisDetail from '@/components/admin/DevisDetail';
 import { Devis } from '@/types';
+import { adminFetch } from '@/lib/admin-fetch';
 
 export default function AdminDevisDetail() {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +23,7 @@ export default function AdminDevisDetail() {
 
   useEffect(() => {
     checkAuth();
-    fetch(`/api/devis/${id}`)
+    adminFetch(`/api/devis/${id}`)
       .then(r => {
         if (r.status === 404) { setNotFound(true); return null; }
         return r.json();
